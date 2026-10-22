@@ -2,7 +2,7 @@
 // @name           DuoFocus — milestones, timer & rewards
 // @name:es        DuoFocus — hitos, cronómetro y recompensas
 // @namespace      https://github.com/MoriNo23/duolingo-adhd
-// @version        2.28.0
+// @version        2.29.0
 // @description    Divide la barra de progreso de la lección en tramos. Modo tiempo: cada tramo arranca en Super y cada vez que el riel se agota baja un peldaño (Super→Madera); el peldaño en que cierres el tramo queda congelado. Cerrá rápido para congelar mejor jerarquía. Recompensas a pantalla completa en peldaños altos (Racha/Diamante/Super), cronómetro Baloo 2, diario local + panel EN/ES. Con sonido: fanfarria por peldaño y recordatorio periódico (Ajustes → Sonido). Mantiene el diseño nativo de Duolingo.
 // @description:en Splits the lesson progress bar into segments. Timer mode: every segment starts at the top tier (Super) and each time the rail runs out it drops one tier (Super→Wood) — the tier you close the segment on gets frozen. Close fast to freeze a better tier. Full-screen reward effects on high tiers (Streak/Diamond/Super), Baloo 2 clock, local journal + EN/ES settings. With sound: a tier fanfare on every segment close plus a periodic reminder (Settings → Sound). Keeps Duolingo's native design.
 // @description:es Divide la barra de progreso de la lección en tramos. Modo tiempo: cada tramo arranca en el nivel Super y va bajando de peldaño (Madera→Super) mientras se quema el presupuesto — cerrá rápido para congelar mejor jerarquía. Efectos de recompensa a pantalla completa en los peldaños altos (Racha/Diamante/Super), partículas, cronómetro Baloo 2, diario local + panel EN/ES. Con sonido: fanfarria por peldaño y recordatorio periódico (Ajustes → Sonido). Mantiene el diseño nativo de Duolingo.
@@ -2127,10 +2127,15 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         background:var(--adhd-fill, linear-gradient(180deg,#e9d5ff,#8b5cf6));
         transition:width 120ms linear, background 320ms linear;
       }
-      /* filo duro en la frontera ganado/restante (canal "dirección") */
+      /* filo duro en la frontera ganado/restante (canal "dirección").
+         milestone-gaps: el tapón (una barra blanca con un anillo oscuro de
+         desplazamiento cero) era decoración, no profundidad. Ahora es un BORDE
+         BRILLANTE con una sombra que lleva desplazamiento y desenfoque, y cae
+         del lado QUEMADO: la frontera se lee y el material no se ensucia. */
       .adhd-rail-head {
-        position:absolute; top:0; bottom:0; width:3px; margin-left:-1.5px;
-        background:#fff; box-shadow:0 0 0 1.5px rgba(0,0,0,.55);
+        position:absolute; top:0; bottom:0; width:3px;
+        background:#fff; border-radius:1.5px;
+        box-shadow:-1px 0 3px rgba(0,0,0,.5);
         transform:translateX(-50%);
       }
       .adhd-rail-head::after {
@@ -2140,8 +2145,8 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         animation: adhd-rail-sweep 1400ms linear infinite;
       }
       @keyframes adhd-rail-sweep { 0% { background-position:180% 0; } 100% { background-position:-80% 0; } }
-      body.adhd-dark .adhd-rail-head { box-shadow:0 0 0 1.5px rgba(0,0,0,.75); }
-      .adhd-rail-head.urgent { background:#ff4b4b; box-shadow:0 0 0 1.5px rgba(120,0,0,.8); }
+      body.adhd-dark .adhd-rail-head { box-shadow:-1px 0 3px rgba(0,0,0,.65); }
+      .adhd-rail-head.urgent { background:#ff4b4b; box-shadow:-1px 0 4px rgba(120,0,0,.8); }
       /* rail-deck-ratchet: wrap. El riel se recarga; el filo de la cabeza hace
          una sola pasada de barrido (mismo lenguaje que el sweep permanente).
          No hay nodo nuevo: se reinicia la animacion del sweep existente. */
@@ -2330,10 +2335,37 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       return true;
     }
 
+    // milestone-gaps: el ancho del espacio vacio entre hitos, en px.
+    const MILESTONE_GAP_PX = 3;
+
+    // milestone-gaps: mascara del overlay con un hueco en cada frontera de
+    // tramo. El degradado va en pasos duros: lo que queda "transparent" es
+    // un hueco, y ahi se ve la barra nativa.
+    function milestoneGapMask(T) {
+      const len = 100 / T;
+      const stops = [];
+      for (let i = 0; i < T - 1; i++) {
+        const at = (i + 1) * len;
+        stops.push('#000 0 calc(' + at + '% - ' + MILESTONE_GAP_PX + 'px)');
+        stops.push('transparent calc(' + at + '% - ' + MILESTONE_GAP_PX + 'px) ' + at + '%');
+      }
+      stops.push('#000 100%');
+      return 'linear-gradient(90deg, ' + stops.join(', ') + ')';
+    }
+
     function buildOverlayContent() {
       if (!overlay) return;
       overlay.innerHTML = '';
       const T = segmentCount(cfg.separators);
+      // milestone-gaps: los hitos se separan con un espacio VACIO. La mascara
+      // corta el overlay en las fronteras de los tramos y lo que se corta deja
+      // ver el gris nativo de la barra (el estado vacio de Duolingo). El hueco
+      // va en px (no en %) para que se vea igual en una barra de 789px que en
+      // una de 140px. La ultima franja NO se recorta: el borde de la barra es
+      // redondeado.
+      const mask = milestoneGapMask(T);
+      overlay.style.webkitMaskImage = mask;
+      overlay.style.maskImage = mask;
       for (let i = 0; i < T; i++) {
         const div = document.createElement('div');
         div.className = 'adhd-seg adhd-no-anim'; // no-anim: width base committed sin transición (timer-mode-ux 1.2)

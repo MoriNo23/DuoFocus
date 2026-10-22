@@ -2647,3 +2647,47 @@ describe('strip-compact-a11y: la tira en angosto y sus huecos de a11y', () => {
       'las celdas se actualizan una por una, sin recrearlas');
   });
 });
+
+// ---------------------------------------------------------------------
+// milestone-gaps: los hitos (los tramos de la barra) se separan con un
+// espacio vacio, y el head del riel deja de ser un tapon con un halo de
+// desplazamiento cero (decoracion) para ser un borde brillante con sombra.
+// ---------------------------------------------------------------------
+describe('milestone-gaps: los hitos con aire y el head sin tapon', () => {
+  const src = publishedSource();
+
+  function region(desde, hasta) {
+    const a = src.indexOf(desde);
+    assert.notEqual(a, -1, 'no se encontro el marcador: ' + desde);
+    const b = src.indexOf(hasta, a);
+    assert.notEqual(b, -1, 'no se encontro el marcador: ' + hasta);
+    return src.slice(a, b);
+  }
+
+  test('los hitos se separan con un espacio vacio en las fronteras', () => {
+    const build = region('function buildOverlayContent', 'function applyProjectedRung');
+    assert.ok(/mask/i.test(build), 'la mascara que abre los espacios tiene que armarse en el overlay');
+    assert.ok(/linear-gradient/.test(build), 'la mascara se arma con un degradado con paradas duras');
+    // el hueco es en px (no en %): en una barra de 140px un 1% son 1.4px y no se ve
+    assert.ok(/px/.test(build), 'el ancho del hueco tiene que ser en px, no en porcentaje');
+    // una parada por frontera, y la ultima no se recorta (el borde de la barra es redondeado)
+    assert.ok(/for \(/.test(build), 'las paradas se generan en un loop sobre los tramos');
+  });
+
+  test('el head es un borde brillante, no un tapon con halo', () => {
+    const head = src.match(/^\s*\.adhd-rail-head \{[^}]*\}/m);
+    assert.ok(head, 'falta la regla del head');
+    assert.equal(/box-shadow:\s*0 0 0/.test(head[0]), false,
+      'el anillo de desplazamiento cero es decoracion, no profundidad (craft floor)');
+    assert.ok(/box-shadow:\s*[^;]*[1-9]px/.test(head[0]),
+      'la sombra del head tiene que llevar desplazamiento (y desenfoque)');
+    assert.ok(/background:#fff/.test(head[0]), 'el head sigue siendo el borde brillante');
+  });
+
+  test('el head urgente tambien sin anillo', () => {
+    const urgent = src.match(/\.adhd-rail-head\.urgent \{[^}]*\}/);
+    assert.ok(urgent, 'falta la regla del head urgente');
+    assert.equal(/box-shadow:\s*0 0 0/.test(urgent[0]), false,
+      'el head urgente tambien tiene el halo de desplazamiento cero');
+  });
+});
