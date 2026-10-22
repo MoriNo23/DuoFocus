@@ -20,6 +20,23 @@ Duolingo's progress bar is one long uniform line: no landmarks, no sense of havi
 
 Built for people who lose focus on long uniform tasks. It is a cosmetic and pacing layer over Duolingo's own bar — it doesn't measure, diagnose or treat anything.
 
+## Index
+
+[The tiers](#the-tiers) · [Install](#install) · [Settings](#settings) · [Sound](#sound) · [Privacy](#privacy) · [Development](#development) · [Roadmap](#roadmap) · [License](#license)
+
+## The tiers
+
+| Tier | On closing the segment | Sound |
+|---|---|---|
+| **Wood** | particles | unpleasant (a dull thud) |
+| **Bronze** | particles | unpleasant (a dead scrape) |
+| **Silver** | particles | unpleasant (a flat buzz) |
+| **Streak** | animated flames, full screen | satisfying |
+| **Diamond** | faceted crystals, full screen | satisfying |
+| **Super** | a shower of Duo, full screen | satisfying |
+
+Wood is the floor: you never lose, you lose tier.
+
 ---
 
 ## Install
