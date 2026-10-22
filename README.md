@@ -4,7 +4,7 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Tampermonkey](https://img.shields.io/badge/tampermonkey-userscript-green)](https://www.tampermonkey.net/)
-[![Version](https://img.shields.io/badge/version-2.29.0-orange)](https://greasyfork.org/es-419/scripts/590127)
+[![Version](https://img.shields.io/badge/version-2.30.0-orange)](https://greasyfork.org/es-419/scripts/590127)
 [![GreasyFork](https://img.shields.io/badge/Greasy%20Fork-Install%20Now-4ca64c)](https://greasyfork.org/es-419/scripts/590127-duolingo-adhd-progress-bar-milestones-for-the-easily-distracted-bored)
 
 </div>
@@ -22,7 +22,7 @@ Duolingo's progress bar is one long, uniform line. When you have trouble staying
 - The bar becomes a **sequence of segments** instead of one continuous sweep.
 - Each segment carries a **material tier** — Wood → Bronze → Silver → Streak → Diamond → **Super** — with its own texture, colour and signature animation.
 - In **timer mode** (on by default) every segment starts at the top tier and **races you down the ladder while you take too long on it**. Answer fast and you freeze a better tier. The tier you land on gets recorded in the bar, so your lesson ends up looking like a record of how you actually did.
-- A **continuous rail** above the bar shows how much budget is left in the current lap and which tier you're on track to reach.
+- A **timing strip** above the bar: the tier label, the budget rail and the lap clock in one object, so the pace is a single thing to read. It shows how much budget is left in the current lap and which tier you're on track to reach.
 - The ladder moves in **laps, not continuously**: the rail holds one tier for the whole lap, and every time it runs out it recharges **one tier lower** — Super → Diamond → Streak → Silver → Bronze → Wood. The tier you freeze is the one the rail was showing **at the moment you closed**, not the best one you brushed against earlier.
 - **You never lose.** Wood is the floor, laps keep counting, and there is no failure state to fall into: running long simply costs you tiers. The segments are a record that pushes you to finish the lesson, not an exam with a trick question.
 
@@ -40,18 +40,18 @@ Duolingo's progress bar is one long, uniform line. When you have trouble staying
 
 Three recordings, in order, taken in a real lesson:
 
-**1. A segment in progress** — the rail at the top of the bar, the tier label, the chronometer, and the settings tab docked to the right edge.
+**1. The timing strip** — one object above the bar: the tier label, the budget rail and the lap clock, side by side. The milestones on the bar below are separated by a small empty space, so the row reads as a series of steps.
 
-![The rail, the chronometer and the settings tab during a lesson](demo.gif)
+![The timing strip above the bar: tier label, budget rail and lap clock](demo.gif)
 
-**2. A full lesson** — 2m40s of the whole system working, including a segment that turns red when the budget runs out.
+**2. The same strip in motion** — the whole system working, including a segment that turns red when the budget runs out.
 
 <video controls preload="none" width="100%" style="max-width:720px;border-radius:12px">
   <source src="demo.mp4" type="video/mp4">
   Your browser does not support embedded video — <a href="demo.mp4">download demo.mp4</a> instead.
 </video>
 
-**3. The settings panel**, open over a finished lesson (the panel's UI is bilingual):
+**3. The settings panel**, open over the app (the panel's UI is bilingual):
 
 ![Settings panel open, showing language, segments per lesson and the timer section](settings.jpg)
 
@@ -66,7 +66,7 @@ Open the settings panel with the **tab docked to the right edge** of the screen.
 | **Language** | your browser locale | Language of the settings panel UI (`es` / `en`). |
 | **Segments per lesson** | **5** (4 separators) | How many pieces the bar is split into. 2–13. Fewer = longer chunks; more = more frequent feedback. |
 | **Timer mode** | **on** | Per-segment time budget with the tier ladder racing you down. Turn it off to get the plain positional tier ladder with no clock. |
-| **Goal (sec)** | **10m 0s** | Time budget per lap. This is the only difficulty dial: a shorter goal means laps run out faster and the ladder drops more tiers within the same segment. |
+| **Goal (sec)** | **2m 0s** | Time budget per lap. This is the only difficulty dial: a shorter goal means laps run out faster and the ladder drops more tiers within the same segment. Two minutes is short on purpose — a lap has to fit inside a lesson, or the ladder never drops and the dial does nothing. |
 | **+ seconds** | **0s** | Fine adjustment on top of the minutes, in 5s steps. |
 | **Reward effects** | **on** | Full-screen celebration when a segment is closed on a high tier: **Streak** → animated flames, **Diamond** → faceted crystals, **Super** → a shower of Duo. Lower tiers keep the particle burst only. |
 | **Test effects** | — | Cycles all six bursts and the lost state on the live bar, so you can tune the look without waiting. |
@@ -87,7 +87,7 @@ Open the settings panel with the **tab docked to the right edge** of the screen.
 | **Idioma** | el locale del navegador | Idioma de la interfaz del panel (`es` / `en`). |
 | **Tramos por lección** | **5** (4 separadores) | En cuántos trozos se divide la barra. 2–13. Menos = trozos más largos; más = feedback más seguido. |
 | **Modo tiempo** | **activado** | Presupuesto de tiempo por tramo con la escalera de peldaños bajándote. Si lo apagás queda la escalera posicional de tiers, sin cronómetro. |
-| **Objetivo (seg)** | **10m 0s** | Presupuesto de cada vuelta. Es el único dial de dificultad: menos tiempo = las vueltas se agotan antes y la escalera baja más peldaños dentro del mismo tramo. |
+| **Objetivo (seg)** | **2m 0s** | Presupuesto de cada vuelta. Es el único dial de dificultad: menos tiempo = las vueltas se agotan antes y la escalera baja más peldaños dentro del mismo tramo. Dos minutos es corto a propósito: una vuelta tiene que caber dentro de una lección, si no la escalera nunca baja y el dial no hace nada. |
 | **+ segundos** | **0s** | Ajuste fino sobre los minutos, en pasos de 5s. |
 | **Efectos de recompensa** | **activado** | Celebración a pantalla completa al cerrar un tramo de peldaño alto: **Racha** → llamas animadas, **Diamante** → cristales facetados, **Super** → lluvia de Duo. Los peldaños bajos conservan solo las partículas. |
 | **Probar efectos** | — | Cicla los seis bursts y un escalón a la baja sobre la barra real, para que puedas ver los efectos sin esperar. |

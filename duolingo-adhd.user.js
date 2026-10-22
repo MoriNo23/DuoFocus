@@ -2,7 +2,7 @@
 // @name           DuoFocus — milestones, timer & rewards
 // @name:es        DuoFocus — hitos, cronómetro y recompensas
 // @namespace      https://github.com/MoriNo23/duolingo-adhd
-// @version        2.29.0
+// @version        2.30.0
 // @description    Divide la barra de progreso de la lección en tramos. Modo tiempo: cada tramo arranca en Super y cada vez que el riel se agota baja un peldaño (Super→Madera); el peldaño en que cierres el tramo queda congelado. Cerrá rápido para congelar mejor jerarquía. Recompensas a pantalla completa en peldaños altos (Racha/Diamante/Super), cronómetro Baloo 2, diario local + panel EN/ES. Con sonido: fanfarria por peldaño y recordatorio periódico (Ajustes → Sonido). Mantiene el diseño nativo de Duolingo.
 // @description:en Splits the lesson progress bar into segments. Timer mode: every segment starts at the top tier (Super) and each time the rail runs out it drops one tier (Super→Wood) — the tier you close the segment on gets frozen. Close fast to freeze a better tier. Full-screen reward effects on high tiers (Streak/Diamond/Super), Baloo 2 clock, local journal + EN/ES settings. With sound: a tier fanfare on every segment close plus a periodic reminder (Settings → Sound). Keeps Duolingo's native design.
 // @description:es Divide la barra de progreso de la lección en tramos. Modo tiempo: cada tramo arranca en el nivel Super y va bajando de peldaño (Madera→Super) mientras se quema el presupuesto — cerrá rápido para congelar mejor jerarquía. Efectos de recompensa a pantalla completa en los peldaños altos (Racha/Diamante/Super), partículas, cronómetro Baloo 2, diario local + panel EN/ES. Con sonido: fanfarria por peldaño y recordatorio periódico (Ajustes → Sonido). Mantiene el diseño nativo de Duolingo.
@@ -103,7 +103,9 @@ const DEFAULTS = {
   lang: 'es',             // idioma del panel: 'es' | 'en'
   // Feature 1: cronómetro por separador (arena-timer-overhaul: ON por defecto)
   timerMode: true,        // ON = escalera por vueltas (nuevo) | OFF = solo separadores
-  timerMinutes: 10,       // minutos por tramo (1–30)
+  timerMinutes: 2,        // minutos por vuelta (1–30). Corto a proposito: una vuelta
+                           // tiene que caber DENTRO de una leccion, si no la
+                           // escalera nunca baja y el dial no hace nada.
   timerSeconds: 0,        // segundos adicionales (0–59)
   timerShowLabel: true,   // efectos de recompensa al cerrar tramo (racha+)
   // animations-panel-setting: nivel de animacion del script.
