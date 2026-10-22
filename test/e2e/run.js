@@ -237,6 +237,11 @@ function checkReport(rep, results, { expectLesson, kind = 'none', navOnly = fals
     // una ficha flotante abajo a la izquierda (pisa el feedback de Duolingo).
     assert(results, 'el cronometro vive DENTRO de la tira', rep.cronoInRail === true,
       rep.cronoInRail);
+    // strip-compact-a11y: el tick reutiliza las celdas del cronometro (antes
+    // las borraba y recreaba en cada decima: 80 nodos por segundo).
+    if (!skipPhases) assert(results, 'la celda del cronometro sobrevive al tick',
+      rep.cronoCeldaEstable && rep.cronoCeldaEstable.estable === true,
+      JSON.stringify(rep.cronoCeldaEstable));
     // animations-panel-setting
     // animations-panel-setting: el override 'always' gana contra el
     // prefers-reduced-motion del harness. El control del panel se prueba en

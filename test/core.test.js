@@ -2543,7 +2543,48 @@ describe('integrated-timing-strip: la tira lleva las tres zonas', () => {
     assert.ok(/color:#c9d1d9/.test(dark[0]), 'en oscuro la etiqueta necesita tinta clara');
   });
 
-  test('el contador baja a 16px para entrar en la tira de 28px', () => {
+  // El tamaño del contador lo fija el change `strip-compact-a11y`: 19px (14pt
+  // bold), que es el mínimo que califica como texto grande en el sentido WCAG.
+  // A 16px el piso de contraste subía a 4.5:1 y dos peldaños no llegaban.
+});
+
+// ---------------------------------------------------------------------
+// strip-compact-a11y: la tira en anchos angostos (la barra movil de
+// Duolingo mide 140px y las tres zonas se comian el riel entero) y los
+// huecos de accesibilidad que encontro el audit: teclado, target tactil
+// y exposicion del tiempo a los lectores de pantalla.
+// ---------------------------------------------------------------------
+describe('strip-compact-a11y: la tira en angosto y sus huecos de a11y', () => {
+  const src = publishedSource();
+
+  function region(desde, hasta) {
+    const a = src.indexOf(desde);
+    assert.notEqual(a, -1, 'no se encontro el marcador: ' + desde);
+    const b = src.indexOf(hasta, a);
+    assert.notEqual(b, -1, 'no se encontro el marcador: ' + hasta);
+    return src.slice(a, b);
+  }
+
+  test('la tira entra en modo compacto cuando la BARRA es angosta', () => {
+    const m = src.match(/const ADHD_STRIP_COMPACT_W\s*=\s*(\d+)/);
+    assert.ok(m, 'falta el umbral de ancho de barra que dispara el modo compacto');
+    assert.ok(Number(m[1]) <= 480, 'el umbral tiene que entrar antes de que la barra se apriete');
+    // la decision es del ancho de la BARRA, no del viewport
+    assert.ok(/classList\.toggle\('compact',\s*\w+\.width\s*</.test(src),
+      'el modo compacto se decide con el ancho de la barra (la que se ancla la tira)');
+    const css = src.match(/\.adhd-decay-timeline\.compact \.adhd-rail-label \{[^}]*\}/);
+    assert.ok(css, 'falta la regla que oculta la etiqueta del peldano en compacto');
+    assert.ok(/display:none/.test(css[0]), 'en compacto la etiqueta del peldano tiene que ocultarse');
+  });
+
+  test('en compacto el contador se queda en minutos y segundos', () => {
+    const render = region('function renderDigits', 'function renderLapMarker');
+    assert.ok(/compact/.test(render), 'renderDigits tiene que mirar el modo compacto');
+    assert.ok(/compacto \? '' : '\.'/.test(render),
+      'en compacto el contador no muestra las decimas (el riel necesita ese ancho)');
+  });
+
+  test('el contador mide 19px: 14pt bold es texto grande en el sentido WCAG', () => {
     const bloques = src.match(/^\s*\.adhd-mini-crono \{[^}]*\}/gm) || [];
     assert.ok(bloques.length >= 1, 'falta el CSS del contador');
     const tamanos = [];
@@ -2554,6 +2595,55 @@ describe('integrated-timing-strip: la tira lleva las tres zonas', () => {
       if (m) tamanos.push(Number(m[1]));
     }
     assert.ok(tamanos.length > 0, 'el contador no declara su tamano');
-    assert.ok(tamanos.every((t) => t === 16), 'el contador tiene que medir 16px, no ' + tamanos.join('/'));
+    assert.ok(tamanos.every((t) => t === 19), 'el contador tiene que medir 19px, no ' + tamanos.join('/'));
+    assert.ok(tamanos.every((t) => t >= 18.67),
+      '14pt bold = 18.67px: por debajo el piso de contraste sube a 4.5:1 y plata/super no llegan');
+  });
+
+  test('el engranaje de ajustes se opera con el teclado', () => {
+    const b = region('function injectSettingsBtn', 'const CLOCK_SVG');
+    assert.ok(/setAttribute\('tabindex', '0'\)/.test(b),
+      'el engranaje tiene que ser focusable: hoy solo se abre con el mouse');
+    assert.ok(/keydown/.test(b), 'el engranaje tiene que responder al teclado');
+    assert.ok(/Enter/.test(b) && /' '|\sSpace\b/.test(b),
+      'Enter y Espacio tienen que abrir el panel');
+  });
+
+  test('el cronometro llega a un lector de pantalla', () => {
+    const start = region('function startMiniCrono', 'function stopMiniCrono');
+    assert.ok(/setAttribute\('role', 'timer'\)/.test(start),
+      'el contador tiene que declararse como timer (sin aria-live: se lee a pedido)');
+    assert.ok(/aria-label/.test(start), 'el contador necesita un nombre accesible localizado');
+    assert.equal(/aria-hidden/.test(start), false,
+      'el contador no puede seguir oculto a los lectores de pantalla');
+    const build = region('function buildDecayTimeline', 'function ensureDecayTimeline');
+    assert.ok(/aria-hidden/.test(build),
+      'el riel (relleno, muescas, cabeza) es decoracion y sigue oculto');
+    assert.ok(/ariaLapTime/.test(src) && /ariaTier/.test(src),
+      'faltan las claves de i18n del nombre accesible');
+  });
+
+  test('los controles del panel ofrecen un target de 24px o mas', () => {
+    const check = src.match(/^\s*\.adhd-panel input\[type=checkbox\] \{[^}]*\}/m);
+    assert.ok(check, 'falta la regla del checkbox');
+    const w = check[0].match(/width:(\d+)px/), h = check[0].match(/height:(\d+)px/);
+    assert.ok(w && h, 'el checkbox tiene que declarar width y height');
+    assert.ok(Number(w[1]) >= 24 && Number(h[1]) >= 24,
+      'el checkbox necesita 24x24 (WCAG 2.2 SC 2.5.8): ahora es ' + w[1] + 'x' + h[1]);
+    const range = src.match(/^\s*\.adhd-panel input\[type=range\] \{[^}]*\}/m);
+    assert.ok(range, 'falta la regla del range');
+    const rh = range[0].match(/height:(\d+)px/);
+    assert.ok(rh && Number(rh[1]) >= 24,
+      'el slider necesita un alto de 24px o mas: ahora es ' + (rh ? rh[1] : '?'));
+  });
+
+  test('el tick reutiliza las celdas del cronometro', () => {
+    const render = region('function renderDigits', 'function renderLapMarker');
+    const clears = (render.match(/textContent = ''/g) || []).length;
+    assert.ok(clears <= 1, 'el tick no puede recrear las celdas en cada decima (80 nodos/segundo)');
+    assert.ok(/if \(\w+\.length !== str\.length\)/.test(render),
+      'el unico rebuild permitido es el del cambio de formato');
+    assert.ok(/\w+\[i\]\.textContent = /.test(render),
+      'las celdas se actualizan una por una, sin recrearlas');
   });
 });

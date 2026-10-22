@@ -2,7 +2,7 @@
 // @name           DuoFocus — milestones, timer & rewards
 // @name:es        DuoFocus — hitos, cronómetro y recompensas
 // @namespace      https://github.com/MoriNo23/duolingo-adhd
-// @version        2.27.0
+// @version        2.28.0
 // @description    Divide la barra de progreso de la lección en tramos. Modo tiempo: cada tramo arranca en Super y cada vez que el riel se agota baja un peldaño (Super→Madera); el peldaño en que cierres el tramo queda congelado. Cerrá rápido para congelar mejor jerarquía. Recompensas a pantalla completa en peldaños altos (Racha/Diamante/Super), cronómetro Baloo 2, diario local + panel EN/ES. Con sonido: fanfarria por peldaño y recordatorio periódico (Ajustes → Sonido). Mantiene el diseño nativo de Duolingo.
 // @description:en Splits the lesson progress bar into segments. Timer mode: every segment starts at the top tier (Super) and each time the rail runs out it drops one tier (Super→Wood) — the tier you close the segment on gets frozen. Close fast to freeze a better tier. Full-screen reward effects on high tiers (Streak/Diamond/Super), Baloo 2 clock, local journal + EN/ES settings. With sound: a tier fanfare on every segment close plus a periodic reminder (Settings → Sound). Keeps Duolingo's native design.
 // @description:es Divide la barra de progreso de la lección en tramos. Modo tiempo: cada tramo arranca en el nivel Super y va bajando de peldaño (Madera→Super) mientras se quema el presupuesto — cerrá rápido para congelar mejor jerarquía. Efectos de recompensa a pantalla completa en los peldaños altos (Racha/Diamante/Super), partículas, cronómetro Baloo 2, diario local + panel EN/ES. Con sonido: fanfarria por peldaño y recordatorio periódico (Ajustes → Sonido). Mantiene el diseño nativo de Duolingo.
@@ -61,14 +61,25 @@
 //      son UNA sola tira. La tarjeta .adhd-decay-timeline es un flex row con
 //      TRES zonas: .adhd-rail-label (izquierda, tinta sobre la tarjeta) +
 //      .adhd-rail-track (el que crece, flex:1) + .adhd-mini-crono (derecha,
-//      16px, DENTRO de la tarjeta). El contador ya NO es un position:fixed
-//      colgado de document.body: la única cosa del script que flota sobre la
-//      página es la pestaña de ajustes. Al reconstruir la tarjeta, el contador
-//      vuelve a entrar (buildDecayTimeline) — el riel es el dueño.
+//      DENTRO de la tarjeta). El contador ya NO es un position:fixed colgado
+//      de document.body: la única cosa del script que flota sobre la página
+//      es la pestaña de ajustes. Al reconstruir la tarjeta, el contador vuelve
+//      a entrar (buildDecayTimeline) — el riel es el dueño.
 //      OJO: los hijos absolutos del track (.adhd-rail-fill, .adhd-rail-head)
 //      miden la fracción quemada contra el TRACK, no contra la barra, así que
 //      el riel queda más corto que la barra (la etiqueta y el contador comen
 //      ancho). La matemática no cambia: la fracción es la misma.
+//   6) strip-compact-a11y (2026-10-22, v2.28.0): la tira entra en MODO
+//      COMPACTO cuando la BARRA es más angosta que ADHD_STRIP_COMPACT_W
+//      (420px; la barra móvil de Duolingo mide 140px). En compacto se oculta
+//      la etiqueta del peldaño (canal redundante: el material del riel y la
+//      superficie del contador ya lo dicen) y el contador pierde las décimas
+//      (mm:ss), para que el riel no quede con 4px. El modo lo decide el ancho
+//      de la BARRA (la que ancla la tira), no el del viewport.
+//      El contador mide 19px: es el mínimo que cuenta como texto grande en el
+//      sentido WCAG (14pt bold), así que el piso de 3:1 de la spec se sigue
+//      aplicando. La tira queda en 31px y el aire sobre la barra sigue siendo
+//      de 8px (el espacio real arriba de la barra es de ~43px).
 
 'use strict';
 
@@ -142,6 +153,9 @@ const I18N = {
     ariaMilestones:  'Cantidad de tramos',
     btnReset:        'Restablecer valores',
     btnSettingsTitle:'Configurar hitos',
+    // strip-compact-a11y: nombres accesibles de la tira (el peldaño y el tiempo)
+    ariaTier:        'Peldaño proyectado',
+    ariaLapTime:     'Tiempo restante de la vuelta',
     // timer-mode-ux: secciones del panel
     secCrono:        'Cronómetro',
     hintBar:         'Corta la barra en tramos (sin hitos marcados). Al cerrar cada tramo: partículas + jerarquía congelada.',
@@ -209,6 +223,9 @@ const I18N = {
     ariaMilestones:  'Number of segments',
     btnReset:        'Reset values',
     btnSettingsTitle:'Configure milestones',
+    // strip-compact-a11y: accessible names for the strip (tier and time)
+    ariaTier:        'Projected tier',
+    ariaLapTime:     'Time left in the lap',
     // timer-mode-ux: panel sections
     secCrono:        'Timer',
     hintBar:         'Splits the bar into segments (no milestone markers). Closing each segment: particles + frozen tier.',
@@ -1880,15 +1897,15 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
          valor y knob circular con anillo blanco. Sigue siendo un <input
          type=range> real: id, teclado, arrastre y valor no cambian. */
       .adhd-panel input[type=range] {
-        -webkit-appearance:none; appearance:none; display:block; width:100%; height:22px;
-        margin:2px 0 6px; padding:0; background:transparent; cursor:pointer;
+        -webkit-appearance:none; appearance:none; display:block; width:100%; height:26px;
+        margin:0 0 4px; padding:0; background:transparent; cursor:pointer;
       }
       .adhd-panel input[type=range]::-webkit-slider-runnable-track {
         height:8px; border-radius:9999px;
         background:linear-gradient(90deg,#1cb0f6 var(--adhd-pct,0%),#e5e5e5 var(--adhd-pct,0%));
       }
       .adhd-panel input[type=range]::-webkit-slider-thumb {
-        -webkit-appearance:none; appearance:none; width:22px; height:22px; margin-top:-7px;
+        -webkit-appearance:none; appearance:none; width:24px; height:24px; margin-top:-8px;
         border-radius:50%; background:#1cb0f6; border:3px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,.25);
       }
       .adhd-panel input[type=range]::-moz-range-track { height:8px; border-radius:9999px; background:#e5e5e5; }
@@ -1912,14 +1929,14 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       /* el checkbox de Duolingo: caja de 22px con radio 7 y check blanco. */
       .adhd-panel label.adhd-check { display:flex; align-items:flex-start; gap:9px; cursor:pointer; line-height:1.35; }
       .adhd-panel input[type=checkbox] {
-        -webkit-appearance:none; appearance:none; flex:none; width:22px; height:22px; margin:0;
+        -webkit-appearance:none; appearance:none; flex:none; width:24px; height:24px; margin:0;
         border:2px solid #e5e5e5; border-radius:7px; background:#fff; position:relative; cursor:pointer;
       }
       .adhd-panel input[type=checkbox]:hover { border-color:#c8c8c8; background:#f7f7f7; }
       .adhd-panel input[type=checkbox]:checked { background:#58cc02; border-color:#58cc02; }
       .adhd-panel input[type=checkbox]:checked:hover { background:#58cc02; }
       .adhd-panel input[type=checkbox]:checked::after {
-        content:''; position:absolute; left:6px; top:2px; width:5px; height:10px;
+        content:''; position:absolute; left:7px; top:2px; width:5px; height:10px;
         border:solid #fff; border-width:0 3px 3px 0; transform:rotate(45deg);
       }
       .adhd-panel input[type=checkbox]:focus-visible { outline:2px solid #1cb0f6; outline-offset:2px; }
@@ -2144,14 +2161,23 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         padding:0 4px 0 2px;
         flex:0 0 auto;
       }
+      /* strip-compact-a11y: modo compacto. La barra movil de Duolingo mide
+         140px y las tres zonas se comian el riel entero (le quedaban 4px).
+         Cuando la barra es angosta se sacrifica el canal REDUNDANTE (el
+         nombre del peldano, que el material del riel y la superficie del
+         contador ya dicen) y el riel conserva un ancho usable. */
+      .adhd-decay-timeline.compact { gap:4px; }
+      .adhd-decay-timeline.compact .adhd-rail-label { display:none; }
+      .adhd-decay-timeline.compact .adhd-mini-crono { padding:1px 6px; }
 
       /* ===== cronómetro: Baloo 2 con celdas de ancho fijo (anti-jitter) =====
-         integrated-timing-strip: baja a 16px para entrar en la tira de 28px
-         (el riel mide 20px). La caja: 16px de texto + 2px de padding = el
-         alto del riel, así que el contador no estira la tira. */
+         strip-compact-a11y: 19px (14pt bold) para que los dígitos CUADEN como
+         texto grande en el sentido WCAG (a 16px el piso subía a 4.5:1 y dos
+         peldaños no llegaban). La caja: 19px de texto + 2px de padding = 22px,
+         apenas más que el riel (20px), así que la tira queda en 30px. */
       .adhd-mini-crono {
         font-family: "Baloo 2", "Nunito", ui-rounded, system-ui, sans-serif;
-        font-size: 16px; font-weight: 700; line-height: 1;
+        font-size: 19px; font-weight: 700; line-height: 1;
         font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;
       }
       .adhd-digit { display:inline-block; width:.66em; text-align:center; }
@@ -2390,7 +2416,10 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       if (miniCronoEl) miniCronoEl.remove();
       miniCronoEl = document.createElement('div');
       miniCronoEl.className = 'adhd-mini-crono';
-      miniCronoEl.setAttribute('aria-hidden', 'true');
+      // strip-compact-a11y: el tiempo LLEGA a un lector de pantalla. role=timer
+      // implica aria-live=off: se lee cuando el usuario llega, no cada décima.
+      miniCronoEl.setAttribute('role', 'timer');
+      miniCronoEl.setAttribute('aria-label', tr(cfg.lang, 'ariaLapTime'));
       // integrated-timing-strip: la tira es el dueño. El contador se crea
       // DENTRO de su tarjeta (no en document.body): la única cosa del script
       // que flota sobre la página es la pestaña de ajustes. Primero la tira
@@ -2400,29 +2429,47 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
 
       const goalMs = getTimerGoalMs(cfg);
       let lastDigits = '';
+      // strip-compact-a11y: las celdas se REUTILIZAN (antes se borraban y se
+      // recreaban en cada décima: 80 nodos por segundo).
+      let digitSpans = [];
+      // rail-fixed-lap-ceiling: marcador de VUELTA. Reusa el cronometro (sin
+      // nodos nuevos en el riel): ⟳N desde la segunda vuelta. Se actualiza
+      // aparte de renderDigits porque los digitos se saltan frames y el wrap
+      // tiene que verse siempre.
+      let lapMark = null;
 
       // arena-timer-overhaul: dígitos en celdas 0.66em (anti-jitter con cualquier fuente).
       function renderDigits(remaining) {
         const mins = Math.floor(remaining / 60000);
         const secs = Math.floor((remaining % 60000) / 1000);
         const tenth = Math.floor((remaining % 1000) / 100);
-        const str = String(Math.min(99, mins)).padStart(2, '0') + ':' + String(secs).padStart(2, '0') + '.' + tenth;
+        // strip-compact-a11y: con la barra angosta no hay ancho para las
+        // décimas (el riel se lleva ese espacio); el contador queda mm:ss.
+        const compacto = decayEl && decayEl.classList.contains('compact');
+        const str = String(Math.min(99, mins)).padStart(2, '0') + ':' + String(secs).padStart(2, '0') +
+                    (compacto ? '' : '.' + tenth);
         if (str === lastDigits) return;
         lastDigits = str;
-        miniCronoEl.textContent = '';
-        str.split('').forEach(ch => {
-          const s = document.createElement('span');
-          s.className = (ch === ':' || ch === '.') ? 'adhd-digit-sep' : 'adhd-digit';
-          s.textContent = ch;
-          miniCronoEl.appendChild(s);
-        });
+        if (digitSpans.length !== str.length) {
+          // Único rebuild: cambió el FORMATO (compacto <-> normal).
+          miniCronoEl.textContent = '';
+          digitSpans = [];
+          str.split('').forEach(ch => {
+            const s = document.createElement('span');
+            s.className = (ch === ':' || ch === '.') ? 'adhd-digit-sep' : 'adhd-digit';
+            s.textContent = ch;
+            miniCronoEl.appendChild(s);
+            digitSpans.push(s);
+          });
+          lapMark = null; // el rebuild se llevó el marcador de vuelta
+        } else {
+          // Las celdas se reutilizan: solo cambia el texto (cero nodos nuevos).
+          str.split('').forEach((ch, i) => {
+            if (digitSpans[i].textContent !== ch) digitSpans[i].textContent = ch;
+          });
+        }
       }
 
-      // rail-fixed-lap-ceiling: marcador de VUELTA. Reusa el cronometro (sin
-      // nodos nuevos en el riel): ⟳N desde la segunda vuelta. Se actualiza
-      // aparte de renderDigits porque los digitos se saltan frames y el wrap
-      // tiene que verse siempre.
-      let lapMark = null;
       function renderLapMarker(lap) {
         if (lap < 1) {
           if (lapMark) { lapMark.remove(); lapMark = null; }
@@ -2542,10 +2589,14 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     let lastRailLap = -1;
 
     // Geometría del riel. GAP = aire entre barra y riel. H = alto total del
-    // chrome (20px riel + 2px padding*2 + 2px borde*2); fallback si el
+    // chrome (23px del contador + 2px padding*2 + 2px borde*2); fallback si el
     // elemento todavía no se midió. Espejo de --adhd-rail-h en el CSS.
     const ADHD_TIMELINE_GAP = 8;
-    const ADHD_TIMELINE_H  = 28;
+    const ADHD_TIMELINE_H  = 31;
+    // strip-compact-a11y: por debajo de este ancho de BARRA la tira no entra
+    // en modo compacto (la etiqueta se oculta y el contador pierde las
+    // décimas). La barra movil de Duolingo mide 140px.
+    const ADHD_STRIP_COMPACT_W = 420;
 
     // fix-reward-fx-killed-by-transient-bar-loss: perder la barra un instante NO
     // es un fin de vida. Duolingo re-renderiza la fila de la leccion al responder
@@ -2606,13 +2657,16 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       const goalMs = getTimerGoalMs(cfg);
       decayEl = document.createElement('div');
       decayEl.className = 'adhd-decay-timeline';
-      decayEl.setAttribute('aria-hidden', 'true');
+      // strip-compact-a11y: la tira ya NO es aria-hidden: el nombre del
+      // peldaño y el tiempo tienen que llegar a un lector de pantalla. Lo que
+      // es decoracion (el riel: relleno, muescas, cabeza) se oculta aparte.
       // Firma de construccion: si cambia el objetivo, ensureDecayTimeline() sabe
       // que debe reconstruir.
       decayEl.dataset.goal = String(goalMs);
 
       const track = document.createElement('div');
       track.className = 'adhd-rail-track';
+      track.setAttribute('aria-hidden', 'true'); // decoración pura
 
       // El earned (ganado) y el fill (restante) crecen desde extremos opuestos
       // y se encuentran en la cabeza: el borde entre ambos es el "ahora".
@@ -2685,6 +2739,10 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       decayEl.style.width = r.width + 'px';
       decayEl.style.top = top + 'px';
       decayEl.classList.toggle('below', !fitsAbove);
+      // strip-compact-a11y: el modo compacto lo decide el ancho de la BARRA
+      // (la que ancla la tira), no el del viewport: con la barra movil de
+      // 140px las tres zonas se comian el riel entero.
+      decayEl.classList.toggle('compact', r.width < ADHD_STRIP_COMPACT_W);
       lastTlAnchor = { left: Math.round(r.left), top: Math.round(top), width: Math.round(r.width) };
     }
 
@@ -2821,7 +2879,12 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
 
       if (label) {
         const text = railLabelFor(projected);
-        if (label.textContent !== text) label.textContent = text;
+        if (label.textContent !== text) {
+          label.textContent = text;
+          // strip-compact-a11y: nombre accesible (el nombre del peldaño solo,
+          // sin decir "tira" ni "riel": el contexto lo da la posición).
+          label.setAttribute('aria-label', tr(cfg.lang, 'ariaTier') + ': ' + text);
+        }
         // integrated-timing-strip: la etiqueta ya no se ancla a un lado del
         // riel (vive FUERA del track, en el extremo izquierdo de la tira, en
         // tinta sobre la tarjeta): no hay mas de que elegir que lado va.
@@ -3568,6 +3631,16 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       settingsBtn.title = tr(cfg.lang, 'btnSettingsTitle');
       settingsBtn.setAttribute('role', 'button');
       settingsBtn.setAttribute('aria-label', tr(cfg.lang, 'btnSettingsTitle'));
+      // strip-compact-a11y: el engranaje se opera con el teclado. Antes solo
+      // se abria con el mouse (era un div con role=button y nada mas).
+      settingsBtn.setAttribute('tabindex', '0');
+      settingsBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          e.stopPropagation();
+          togglePanel();
+        }
+      });
       settingsBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePanel(); });
       document.body.appendChild(settingsBtn);
     }

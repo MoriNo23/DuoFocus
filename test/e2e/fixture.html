@@ -341,6 +341,22 @@
     }, Promise.resolve()).then(function () { return out; });
   }
 
+  // strip-compact-a11y: el tick REUTILIZA las celdas del cronómetro. Antes las
+  // borraba y recreaba en cada décima (80 nodos por segundo). Se marca una
+  // celda con un atributo y se verifica que el nodo sigue siendo el MISMO
+  // después de un par de ticks (que es cuando la décima cambia).
+  function celdaEstable() {
+    var c = q('.adhd-mini-crono');
+    if (!c) return Promise.resolve(null);
+    var celda = c.querySelector('.adhd-digit');
+    if (!celda) return Promise.resolve(null);
+    celda.setAttribute('data-probe', 'celda');
+    return waitTick().then(function () { return waitTick(); }).then(function () {
+      var misma = document.querySelector('.adhd-mini-crono .adhd-digit[data-probe="celda"]');
+      return { estable: !!misma };
+    });
+  }
+
   function snap(lap) {
     var fill = q('.adhd-rail-fill');
     var mark = q('.adhd-lap-mark');
@@ -1080,6 +1096,8 @@
         return samplePanelEffects(9000);
       })
       .then(function () { report.fxReady = true; finish(); })
+      .then(function () { return celdaEstable(); })
+      .then(function (c) { report.cronoCeldaEstable = c; })
       .then(function () { return tierSamples(); })
       .then(function (first) {
       return Promise.resolve().then(function () {
