@@ -5,155 +5,131 @@
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Tampermonkey](https://img.shields.io/badge/tampermonkey-userscript-green)](https://www.tampermonkey.net/)
 [![Version](https://img.shields.io/badge/version-2.30.0-orange)](https://greasyfork.org/es-419/scripts/590127)
-[![GreasyFork](https://img.shields.io/badge/Greasy%20Fork-Install%20Now-4ca64c)](https://greasyfork.org/es-419/scripts/590127-duolingo-adhd-progress-bar-milestones-for-the-easily-distracted-bored)
+[![GreasyFork](https://img.shields.io/badge/Greasy%20Fork-Install%20Now-4ca64a)](https://greasyfork.org/es-419/scripts/590127-duolingo-adhd-progress-bar-milestones-for-the-easily-distracted-bored)
 
 </div>
 
 ![DuoFocus in action](demo.gif)
 
+Duolingo's progress bar is one long uniform line: no landmarks, no sense of having closed a chunk, no feedback on pace. DuoFocus splits that line into segments, gives each one a **tier** — Wood → Bronze → Silver → Streak → Diamond → **Super** — and races you down that ladder while you take too long on it.
+
+- **Segments, not a line.** Each one carries a material tier with its own texture, colour and signature animation.
+- **A timing strip above the bar.** Tier name, budget rail and lap clock in one object, so the pace is a single thing to read.
+- **Laps, not a countdown.** The rail holds one tier for the whole lap; when it runs out it recharges **one tier lower**. The tier you freeze is the one the rail was showing **at the moment you closed** — not the best one you brushed earlier.
+- **You never lose.** Wood is the floor, laps keep counting, and running long simply costs you tiers. The bar ends up a record of how the lesson actually went.
+
+Built for people who lose focus on long uniform tasks. It is a cosmetic and pacing layer over Duolingo's own bar — it doesn't measure, diagnose or treat anything.
+
 ---
 
-## What it is
+## Install
 
-Duolingo's progress bar is one long, uniform line. When you have trouble staying with something for long stretches, that line gives you almost nothing to hold onto: no landmarks, no sense of "I closed a chunk", no feedback on pace.
+1. Install a userscript manager: [Tampermonkey](https://www.tampermonkey.net/), Violentmonkey or Greasemonkey.
+2. Install the script from Greasy Fork: **https://greasyfork.org/es-419/scripts/590127**
+3. Open any lesson or practice session. The bar splits itself; the tab on the right edge opens the settings.
 
-**DuoFocus** splits that bar into segments and turns each one into a small reward loop:
+The script updates itself through Greasy Fork once installed.
 
-- The bar becomes a **sequence of segments** instead of one continuous sweep.
-- Each segment carries a **material tier** — Wood → Bronze → Silver → Streak → Diamond → **Super** — with its own texture, colour and signature animation.
-- In **timer mode** (on by default) every segment starts at the top tier and **races you down the ladder while you take too long on it**. Answer fast and you freeze a better tier. The tier you land on gets recorded in the bar, so your lesson ends up looking like a record of how you actually did.
-- A **timing strip** above the bar: the tier label, the budget rail and the lap clock in one object, so the pace is a single thing to read. It shows how much budget is left in the current lap and which tier you're on track to reach.
-- The ladder moves in **laps, not continuously**: the rail holds one tier for the whole lap, and every time it runs out it recharges **one tier lower** — Super → Diamond → Streak → Silver → Bronze → Wood. The tier you freeze is the one the rail was showing **at the moment you closed**, not the best one you brushed against earlier.
-- **You never lose.** Wood is the floor, laps keep counting, and there is no failure state to fall into: running long simply costs you tiers. The segments are a record that pushes you to finish the lesson, not an exam with a trick question.
+> When you install (or update to) a version with the desktop reminder, Tampermonkey asks once for the **notifications permission** — that's the manager asking, not duolingo.com. Denying it leaves the audible-only path.
 
-## Who it's for, and what it actually does
+## Settings
 
-**If you struggle with consistency.** A uniform bar has no milestones, so there's no moment to acknowledge. Segments give you one every few seconds, and closing one fires particles in that segment's colour. It's the difference between watching a line and working through a series of small completions.
+Everything applies live, no reload. Open the panel with the tab docked to the right edge.
 
-**If you tend to lose focus on long, uniform tasks.** The per-segment timer turns "be faster" from a vague intention into a concrete, short-horizon target: finish *this* segment before the tier drops. You get one piece of feedback every few seconds instead of an end-of-lesson score.
+### English
 
-**If you like seeing progress accumulate.** The local journal tracks lessons, segments, average time per segment and your streak of days — all stored in your browser, never uploaded.
+| Control | Default | What it does |
+|---|---|---|
+| **Language** | your browser locale | Panel UI (`es` / `en`). |
+| **Segments per lesson** | **5** (4 separators) | How many pieces the bar is split into. 2–13. Fewer = longer chunks; more = more frequent feedback. |
+| **Timer mode** | **on** | Per-lap time budget with the tier ladder racing you down. Off gives the plain positional tier ladder, no clock. |
+| **Goal (sec)** | **2m 0s** | Time budget per lap, the only difficulty dial. Short on purpose: a lap has to fit inside a lesson, or the ladder never drops and the dial does nothing. |
+| **+ seconds** | **0s** | Fine adjustment on top of the minutes, in 5s steps. |
+| **Reward effects** | **on** | Full-screen celebration when a segment closes on a high tier: **Streak** → animated flames, **Diamond** → faceted crystals, **Super** → a shower of Duo. Lower tiers keep the particle burst. |
+| **Test effects** | — | Cycles all six bursts on the live bar. |
+| **Animations** | **respect system** | Follows the desktop's reduced-motion setting; **always** forces every effect on, **never** calms them all. Affects this script only. |
+| **Tier sounds** | **on** | A short cue per closed segment: satisfying on **Streak / Diamond / Super**, unpleasant on **Wood / Bronze / Silver**. |
+| **Periodic reminder** | **on** | A soft nudge while duolingo.com is open, on any screen. It only sounds when you're **not** using the page (45 s without interacting, or the tab hidden). |
+| **Every** | **1m** | Reminder interval: 15 s – 15 min in 15 s steps. |
+| **Test sound** | — | Plays the reminder cue immediately. |
+| **Local journal** | **off** | Lessons, segments, average time, day streak. Nothing is recorded until you enable it. |
+| **Reset values** | — | Restores all defaults (keeps your language). |
 
-**What this script is not.** It is not a clinical tool, it does not measure or diagnose attention, and it is not a substitute for treatment, therapy or professional planning. It is a cosmetic and pacing layer over Duolingo's own bar, for personal use. If a feature would help you, [suggest it](#suggestions).
+### Español
 
-## The material
+| Control | Por defecto | Qué hace |
+|---|---|---|
+| **Idioma** | el locale del navegador | Interfaz del panel (`es` / `en`). |
+| **Tramos por lección** | **5** (4 separadores) | En cuántos trozos se divide la barra. 2–13. Menos = trozos más largos; más = feedback más seguido. |
+| **Modo tiempo** | **activado** | Presupuesto por vuelta con la escalera bajándote. Apagado queda la escalera posicional, sin cronómetro. |
+| **Objetivo (seg)** | **2m 0s** | Presupuesto de cada vuelta, el único dial de dificultad. Corto a propósito: una vuelta tiene que caber en una lección, si no la escalera nunca baja y el dial no hace nada. |
+| **+ segundos** | **0s** | Ajuste fino sobre los minutos, en pasos de 5s. |
+| **Efectos de recompensa** | **activado** | Celebración a pantalla completa al cerrar un tramo de peldaño alto: **Racha** → llamas, **Diamante** → cristales, **Super** → lluvia de Duo. |
+| **Probar efectos** | — | Cicla los seis bursts sobre la barra real. |
+| **Animaciones** | **respetar sistema** | Sigue la preferencia de movimiento reducido del escritorio. **Siempre** fuerza todo, **nunca** calma todo. Afecta solo a este script. |
+| **Sonidos por peldaño** | **activado** | Un cue por tramo cerrado: satisfactorio en **Racha / Diamante / Super**, desagradable en **Madera / Bronce / Plata**. |
+| **Recordatorio periódico** | **activado** | Un aviso suave mientras duolingo.com está abierto, en cualquier pantalla. Solo suena si no estás usando la página (45 s sin interacción, o pestaña oculta). |
+| **Cada cuánto** | **1m** | Intervalo del recordatorio: de 15 s a 15 min, en pasos de 15 s. |
+| **Probar sonido** | — | Suena el recordatorio al toque (y desbloquea el audio del navegador). |
+| **Diario local** | **desactivado** | Lecciones, tramos, tiempo medio y racha de días. Nada se registra hasta que lo actives. |
+| **Restablecer valores** | — | Vuelve todo a los valores por defecto (conserva tu idioma). |
 
-Three recordings, in order, taken in a real lesson:
-
-**1. The timing strip** — one object above the bar: the tier label, the budget rail and the lap clock, side by side. The milestones on the bar below are separated by a small empty space, so the row reads as a series of steps.
-
-![The timing strip above the bar: tier label, budget rail and lap clock](demo.gif)
-
-**2. The same strip in motion** — the whole system working, including a segment that turns red when the budget runs out.
+<div align="center">
 
 <video controls preload="none" width="100%" style="max-width:720px;border-radius:12px">
   <source src="demo.mp4" type="video/mp4">
   Your browser does not support embedded video — <a href="demo.mp4">download demo.mp4</a> instead.
 </video>
 
-**3. The settings panel**, open over the app (the panel's UI is bilingual):
-
 ![Settings panel open, showing language, segments per lesson and the timer section](settings.jpg)
 
-## Configuration
-
-Open the settings panel with the **tab docked to the right edge** of the screen. Everything applies live — no reload needed.
-
-### Configuration (English)
-
-| Control | Default | What it does |
-|---|---|---|
-| **Language** | your browser locale | Language of the settings panel UI (`es` / `en`). |
-| **Segments per lesson** | **5** (4 separators) | How many pieces the bar is split into. 2–13. Fewer = longer chunks; more = more frequent feedback. |
-| **Timer mode** | **on** | Per-segment time budget with the tier ladder racing you down. Turn it off to get the plain positional tier ladder with no clock. |
-| **Goal (sec)** | **2m 0s** | Time budget per lap. This is the only difficulty dial: a shorter goal means laps run out faster and the ladder drops more tiers within the same segment. Two minutes is short on purpose — a lap has to fit inside a lesson, or the ladder never drops and the dial does nothing. |
-| **+ seconds** | **0s** | Fine adjustment on top of the minutes, in 5s steps. |
-| **Reward effects** | **on** | Full-screen celebration when a segment is closed on a high tier: **Streak** → animated flames, **Diamond** → faceted crystals, **Super** → a shower of Duo. Lower tiers keep the particle burst only. |
-| **Test effects** | — | Cycles all six bursts and the lost state on the live bar, so you can tune the look without waiting. |
-| **Animations** | **respect system** | Follows the desktop's reduced-motion setting. Set it to **always** to force every effect on, or **never** to calm them all down. Affects this script only — it never changes your OS settings. Toggling it applies live. |
-| **Tier sounds** | **on** | A short sound every time a segment closes, matched to the tier you froze: satisfying on **Streak / Diamond / Super**, unpleasant on **Wood / Bronze / Silver**. Each tier has its own cue. |
-| **Periodic reminder** | **on** | Repeats a soft reminder while duolingo.com is open, **on any screen**. It only sounds when you are **not focused on the page** — 45 s without interacting, or the tab hidden — so it never interrupts you mid-lesson. It never plays catch-up when you come back. |
-| **Every** | **1m** | Interval for the reminder: 15 s – 15 min in 15 s steps (the label shows it as `45s`, `1m`, `5m 30s`). |
-| **Test sound** | — | Plays the reminder cue immediately. Clicking it also unlocks audio for the browser, which blocks all sound until you interact with the page. |
-| **Local journal** | **off** | Starts counting lessons, segments, average time, day streak and total lessons. Off by default; nothing is recorded until you enable it. |
-| **Reset values** | — | Restores all defaults (keeps your chosen language). |
-
-**Turning timer mode off** is the thing to try first if the ladder feels punishing: you keep the segmented bar and the tier textures, and lose only the clock and the rail.
-
-### Configuración (español)
-
-| Control | Por defecto | Qué hace |
-|---|---|---|
-| **Idioma** | el locale del navegador | Idioma de la interfaz del panel (`es` / `en`). |
-| **Tramos por lección** | **5** (4 separadores) | En cuántos trozos se divide la barra. 2–13. Menos = trozos más largos; más = feedback más seguido. |
-| **Modo tiempo** | **activado** | Presupuesto de tiempo por tramo con la escalera de peldaños bajándote. Si lo apagás queda la escalera posicional de tiers, sin cronómetro. |
-| **Objetivo (seg)** | **2m 0s** | Presupuesto de cada vuelta. Es el único dial de dificultad: menos tiempo = las vueltas se agotan antes y la escalera baja más peldaños dentro del mismo tramo. Dos minutos es corto a propósito: una vuelta tiene que caber dentro de una lección, si no la escalera nunca baja y el dial no hace nada. |
-| **+ segundos** | **0s** | Ajuste fino sobre los minutos, en pasos de 5s. |
-| **Efectos de recompensa** | **activado** | Celebración a pantalla completa al cerrar un tramo de peldaño alto: **Racha** → llamas animadas, **Diamante** → cristales facetados, **Super** → lluvia de Duo. Los peldaños bajos conservan solo las partículas. |
-| **Probar efectos** | — | Cicla los seis bursts y un escalón a la baja sobre la barra real, para que puedas ver los efectos sin esperar. |
-| **Animaciones** | **respetar sistema** | Sigue la preferencia de movimiento reducido del escritorio. Ponela en **siempre** para forzar todos los efectos, o en **nunca** para calmarlos. Afecta solo a este script: nunca cambia la configuración del sistema operativo. Se aplica al instante. |
-| **Sonidos por peldaño** | **activado** | Un sonido corto cada vez que se cierra un tramo, con el peldaño que congelaste: satisfactorio en **Racha / Diamante / Super**, desagradable en **Madera / Bronce / Plata**. Cada peldaño tiene su propio sonido. |
-| **Recordatorio periódico** | **activado** | Repite un aviso suave mientras duolingo.com está abierto, **en cualquier pantalla**. Solo suena cuando **no estás usando la página** — 45 s sin interacción, o la pestaña oculta — así nunca te interrumpe en plena lección. Al volver no repite lo perdido. |
-| **Cada cuánto** | **1m** | Intervalo del recordatorio: de 15 s a 15 min, en pasos de 15 s (el rótulo lo muestra como `45s`, `1m`, `5m 30s`). |
-| **Probar sonido** | — | Suena el recordatorio al toque. El click además desbloquea el audio, que el navegador retiene hasta que interactúas con la página. |
-| **Diario local** | **desactivado** | Empieza a contar lecciones, tramos, tiempo medio, racha de días y lecciones totales. Apagado por defecto; no se registra nada hasta que lo actives. |
-| **Restablecer valores** | — | Vuelve todo a los valores por defecto (conserva el idioma que elegiste). |
-
-**Lo primero para probar si la escalera te parece muy dura:** apagá el **modo tiempo**. Conservás la barra segmentada y las texturas de los peldaños; perdés solo el cronómetro y el riel.
+</div>
 
 ## Sound
 
-The script ships two kinds of sound, both controlled from **Settings → Sound**:
+Two kinds, both in **Settings → Sound**:
 
-- **A tier fanfare on every closed segment.** It plays in the same instant as the particle burst and the tier freeze. The three high tiers (Streak, Diamond, Super) sound satisfying; the three low tiers (Wood, Bronze, Silver) sound deliberately unpleasant — the same split as the full-screen reward effects. With timer mode off no tier is evaluated, so there is no fanfare.
-- **A periodic reminder while duolingo.com is open.** Default interval **60 s**, configurable from 15 s to 15 min. It does not depend on the lesson bar: it plays on **any screen**, and only when you are idle — no interaction for 45 s, or the tab hidden — so it never interrupts an active lesson. If it falls due while you are focused it waits, and coming back from a hidden tab plays at most one reminder, never a backlog.
+- **A tier fanfare on every closed segment**, in the same instant as the burst and the freeze. Satisfying on the high tiers, deliberately unpleasant on the low ones. With timer mode off no tier is evaluated, so there is no fanfare.
+- **A periodic reminder** while duolingo.com is open, on any screen. Default every **60 s**, configurable from 15 s to 15 min. It only plays when you're idle, and it never plays catch-up when you come back.
 
-Each one has its own toggle, and with everything off the script keeps no timer and prepares no audio at all.
-
-**Browser autoplay.** Chrome and Firefox block all sound until you interact with the page at least once. The first click or key press unlocks it — the **Test sound** button does exactly that. If a cue is still blocked, it is dropped silently and the lesson keeps going: sound never blocks or breaks anything.
-
-**No network requests.** The seven cues are embedded in the script as base64 `data:` URIs, so they load instantly, work offline and can't be blocked by an extension.
+Both are embedded in the script as base64 `data:` URIs: they load instantly, work offline and can't be blocked by an extension. **Browser autoplay**: Chrome and Firefox hold all sound until you interact with the page once — the **Test sound** button does exactly that. A blocked cue is dropped silently; sound never blocks or breaks the lesson.
 
 ### Desktop notification when the tab is hidden
 
-A reminder that falls due while the tab is **in the background** escalates to a **system notification**. The reason is structural: the browser throttles a hidden tab's timers down to about one wake per minute, so a page-scheduled sound cannot reach you on time — but the operating system's notification channel can. The notification is silent in itself; if the page's audio is alive, the script's own cue sounds along with it, so the notice doesn't depend on your OS volume.
+A reminder that falls due while the tab is in the background escalates to a **system notification**: the browser throttles hidden-tab timers to about one wake per minute, so a page-scheduled sound can't reach you on time — the OS's notification channel can.
 
-- It's the **userscript manager** (Tampermonkey), never duolingo.com, that shows the notification — the site is never asked for a notification permission, and no prompt is ever attributed to it.
-- It ships **on by default**, like the sounds. One click in **Settings → Sound** turns it off; with it off, a hidden reminder simply waits and plays at most once when you come back — exactly as before this feature existed.
-- In managers without `GM_notification` (Violentmonkey, Greasemonkey, Safari), the toggle degrades silently to that same old behaviour: nothing breaks, the reminder stays pending until you return.
+It's the **userscript manager** (Tampermonkey), never duolingo.com, that shows it: the site is never asked for a notification permission. It ships **on by default**; one click in *Settings → Sound* turns it off, and with it off a hidden reminder simply waits and plays at most once when you return.
 
-**If nothing shows even with the toggle on**, the OS is almost always the one silencing it — and the panel says so: the Sound section shows a red note when the last notification wasn't delivered. How to unblock it:
+If nothing shows, the OS is almost always the one silencing it:
 
-- **GNOME / Linux:** *Settings → Notifications* — turn off **Do Not Disturb** and make sure notifications are enabled for your browser. On minimal setups with no notification daemon (some window managers), install and enable one (`mako`, `dunst`) — nothing can be shown without it.
-- **Windows:** *Settings → System → Notifications* — notifications on, and check that **Focus Assist / Do Not Disturb** is not suppressing them, and that your browser isn't in the per-app block list.
-- The browser itself can block them too: in `chrome://settings/content/notifications`, the userscript manager's entry must not be blocked.
+- **GNOME/Linux:** turn off *Do Not Disturb* and make sure notifications are enabled for your browser. On minimal setups, install a daemon (`mako`, `dunst`).
+- **Windows:** check that *Focus Assist / Do Not Disturb* isn't suppressing them and that your browser isn't in the per-app block list.
+- **Chrome:** in `chrome://settings/content/notifications`, make sure the userscript manager's entry isn't blocked.
 
-### Replacing a sound (ElevenLabs prompts)
+### Replacing a sound
 
-Every cue has two interchangeable sources, in this order:
+Every cue has two interchangeable sources, in this order: the embedded sample in `SOUND_SAMPLES` (inside `duolingo-adhd.user.js`), and a built-in synthesizer recipe in `SOUND_SYNTH`, always present as the fallback.
 
-1. the embedded sample in `SOUND_SAMPLES` (inside `duolingo-adhd.user.js`), and
-2. a built-in synthesizer recipe in `SOUND_SYNTH`, always present as the fallback.
-
-To swap in a sound you generate yourself:
-
-1. Generate the SFX with the matching prompt below (ElevenLabs SFX works, so does any other generator). Short, no voice, no music bed.
-2. Trim it and export **mono MP3**, e.g. with ffmpeg — this cuts at 1.6 s and fades the last 0.3 s so a long cue can't cover the next segment closing:
+1. Generate the SFX (ElevenLabs SFX works, so does any other generator): short, no voice, no music bed.
+2. Trim it and export **mono MP3** — this cuts at 1.6 s and fades the last 0.3 s so a long cue can't cover the next segment closing:
 
    ```bash
    ffmpeg -i cue.wav -af "atrim=0:1.6,afade=t=out:st=1.3:d=0.3" -ac 1 -ar 22050 -c:a libmp3lame -b:a 40k cue.mp3
    ```
+
 3. Turn it into a data URI:
 
    ```bash
    echo -n "data:audio/mpeg;base64,$(base64 -w0 cue.mp3)"
    ```
-4. In `duolingo-adhd.user.js`, find `const SOUND_SAMPLES = {` and paste the entire string as the value for that cue's key (`super`, `diamante`, `racha`, `plata`, `bronce`, `madera`, `reminder`).
-5. Stay inside the budget: **≤ ~20 KB of base64 per cue, ≤ ~100 KB in total** (the seven shipped samples are ~61 KB together). If one doesn't fit, shorten it or set the value to `''` — the synthesizer takes over for that cue.
+
+4. In `duolingo-adhd.user.js`, find `const SOUND_SAMPLES = {` and paste the string as the value for that cue's key (`super`, `diamante`, `racha`, `plata`, `bronce`, `madera`, `reminder`).
+5. Stay inside the budget: **≤ ~20 KB of base64 per cue, ≤ ~100 KB in total** (the seven shipped samples are ~61 KB together). If one doesn't fit, shorten it or set the value to `''` — the synthesizer takes over.
 
 Nothing else changes: the trigger, the panel and the tests only care about the cue id.
 
-**The prompts used for the shipped samples:**
+<details>
+<summary>The prompts used for the shipped samples</summary>
 
 | Cue | Character | Prompt |
 |---|---|---|
@@ -165,64 +141,30 @@ Nothing else changes: the trigger, the panel and the tests only care about the c
 | `madera` | unpleasant, ugly on purpose | *Descending wobbly low woodblock wobble, clumsy and comical failure sound, cheap and scratchy, 0.45 seconds, no voice, no music bed* |
 | `reminder` | a nudge, not an alarm | *Two soft hollow owl hoots, a calm distant bird call used as a gentle attention-getting nudge, warm and non urgent, 0.8 seconds, no voice, no music bed* |
 
-The shipped samples are trimmed to ≤ 1.9 s and normalised to **≈ -18.5 LUFS (true peak between -2.6 and -10 dBTP)**, so all seven sit at the same perceived volume. If you generate your own, match them by ear or with `ffmpeg -af ebur128`.
+</details>
 
-## Verification
+The shipped samples are trimmed to ≤ 1.9 s and normalised to **≈ -18.5 LUFS (true peak between -2.6 and -10 dBTP)**, so all seven sit at the same perceived volume. Match by ear or with `ffmpeg -af ebur128`.
 
-There is no CI and no service in the loop: everything runs on the maintainer's machine.
+## Privacy
 
-- **The loop**: `npm test` — the unit suite only (`npm run test:core`, Node, ~0.4 s, no browser). It is the red→green loop and it runs on every change.
-- **The heavy layers**, run by hand when they are worth the minutes: `npm run test:e2e` (the published file against a frozen replica of duolingo.com, in a headless browser) and `npm run mutate` (47 mutants; a survivor is a coverage gap, not a detail). Both need a Chromium on the machine.
-- **The check that needs files outside the repo**: `npm run test:vendor` — unzip + diff of the three third-party modules against their reference archives (~1 s, no browser). Those archives are not tracked, so this one can only run locally.
-- **The live check**: `npm run test:live` — the published file against real duolingo.com with a logged-in session. It is local-only by nature: it needs the real site, a real session and no CI runner can provide either.
+- **Nothing leaves your browser.** No server, no account, no analytics. Settings and journal live in your userscript manager's local storage.
+- The only network request is the Baloo 2 font for the clock, and it falls back to a system font if blocked.
+- The sounds and the reward effects are embedded in the script: no audio or animation is ever downloaded.
+- The desktop notification is emitted by the userscript manager, not by duolingo.com.
 
-## QA de campo (field QA)
+## Development
 
-The automated harness (core + e2e) validates the published file against a frozen fixture — a replica of duolingo.com as captured on one date. The real site drifts, and those bugs are found on the real site. The live probe (`npm run test:live`) is the bridge: it drives the real site with a real session and dumps the page errors, the script's DOM artifacts, the measured contrast and the effective motion level.
+`npm test` is the red→green loop (unit suite, ~0.4 s). The heavier layers are run by hand: `npm run test:e2e` (headless browser against a frozen replica of duolingo.com), `npm run mutate` (47 mutants; a survivor is a coverage gap), `npm run test:vendor` (third-party module diff, needs files outside the repo) and `npm run test:live` (the real site, needs a logged-in session). There is no CI.
 
-Field rounds are **issue-triggered**: when something is reported about the real site, a question form is generated from `qa/plantilla-guion.html` for that issue plus a fixed smoke section, the evidence is the probe's dump, and the filled form exports `qa/reports/<round>-campo.md` (front matter: `change`, `version`, `fecha`, `resultado`, `fallas`). A `FALLA` becomes tracked work: it reopens the change that owns the behaviour, or spawns a field-bug change that cites the report.
-
-Feature work does not go through a round — the harness is the gate for it. The published userscript ships none of this machinery: the guion lives in `qa/`, tracked like `test/`, and the script file stays untouched.
+Field QA is issue-triggered: when something is reported about the real site, a question form is generated from `qa/plantilla-guion.html`, the evidence is the live probe's dump, and the filled form exports a report under `qa/reports/`.
 
 ## Roadmap
 
-Planned, in order:
-
-1. **UX improvements.** Continued polish on the rail, the panel and how the lap ladder reads at a glance.
+1. **UX improvements.** Continued polish on the strip, the panel and how the lap ladder reads at a glance.
 2. **More features in other areas.** Beyond the progress bar.
 
-Suggestions for any of these are welcome — see below.
-
-## Scope, privacy and affiliation
-
-- **A personal userscript, not an official product.** Made by one person, for personal use, in the context of language learning. Not affiliated with, endorsed by, or supported by Duolingo.
-- **Nothing leaves your browser.** There is no server, no account and no analytics. Your settings and journal live in the userscript manager's local storage and stay on your machine. Clearing the script's storage deletes them permanently.
-- **The reminder's desktop notification is local too.** It is emitted by the userscript manager (`GM_notification`), not by duolingo.com: the site is never asked for a notification permission, no permission prompt is attributed to it, and nothing about you or your session leaves the browser — the operating system only ever receives the short text you see on screen.
-- **The only network request** the script makes is fetching the Baloo 2 font used by the chronometer, and it fails gracefully to a system font if that request is blocked.
-- **The sounds are self-contained.** The seven cues (tier fanfare + reminder) are embedded in the script file itself as `data:` URIs; no audio is downloaded, ever.
-- **The reward effects are self-contained.** The three celebration effects are bundled canvas animations with no external requests; the Super effect embeds a small sprite of the Duo character that you supplied.
-- It is released under the [MIT license](LICENSE). Use it, fork it, adapt it.
-
-## Install
-
-**1. Install a userscript manager** — [Tampermonkey](https://www.tampermonkey.net/), Violentmonkey, or Greasemonkey.
-
-**2. Install the script** from Greasy Fork:
-
-> **https://greasyfork.org/es-419/scripts/590127**
-
-**Heads-up:** when you install (or update to) a version with the desktop reminder, Tampermonkey asks once for the **notifications permission** — that's the manager asking, not duolingo.com. Allow it if you want reminders to reach you while the tab is in the background; denying it simply leaves the audible-only path.
-
-**3. Open any lesson or practice session** on Duolingo. The bar segments itself. Click the tab on the right edge to change settings.
-
-The script updates itself through Greasy Fork once installed.
-
-## Suggestions
-
-Suggestions are genuinely welcome — that's most of what the roadmap is made of. If something feels off, confusing, or you want a dial that doesn't exist yet, open an issue on the repository.
-
-Useful things to include: what you were doing, what you expected, what happened instead, and your browser plus Duolingo's UI language. If it's a visual thing, a screenshot helps a lot.
+Suggestions are welcome — open an issue with what you were doing, what you expected, what happened instead, and your browser plus Duolingo's UI language. A screenshot helps a lot on visual things.
 
 ## License
 
-MIT — see `LICENSE`.
+MIT — see `LICENSE`. A personal project, not affiliated with or endorsed by Duolingo.
