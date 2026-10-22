@@ -169,23 +169,20 @@ The shipped samples are trimmed to ≤ 1.9 s and normalised to **≈ -18.5 LUFS 
 
 ## Verification
 
-Verification is split on purpose so that development never has to run a browser on the maintainer's machine:
+There is no CI and no service in the loop: everything runs on the maintainer's machine.
 
-- **Locally**: `npm test` — the unit suite only (`npm run test:core`, Node, ~0.4 s, no browser). It is the red→green loop.
-- **In GitHub Actions** (`.github/workflows/ci.yml`): the unit suite, the mutation harness (`npm run mutate`) and the headless-browser check (`npm run test:e2e`), as three separate steps on a pinned runner image (`ubuntu-24.04`). The heavy layers run **only** there.
-- **Before pushing** (the one check that needs files outside the repo): `npm run test:vendor` — unzip + diff of the three third-party modules against their reference archives (~1 s, no browser). It is not a workflow step because those archives are not tracked.
-- **Flow**: work goes on a branch and is opened as a pull request; a change counts as verified when that pull request's run is green on every layer. Nothing is pushed to `master` directly.
+- **The loop**: `npm test` — the unit suite only (`npm run test:core`, Node, ~0.4 s, no browser). It is the red→green loop and it runs on every change.
+- **The heavy layers**, run by hand when they are worth the minutes: `npm run test:e2e` (the published file against a frozen replica of duolingo.com, in a headless browser) and `npm run mutate` (47 mutants; a survivor is a coverage gap, not a detail). Both need a Chromium on the machine.
+- **The check that needs files outside the repo**: `npm run test:vendor` — unzip + diff of the three third-party modules against their reference archives (~1 s, no browser). Those archives are not tracked, so this one can only run locally.
+- **The live check**: `npm run test:live` — the published file against real duolingo.com with a logged-in session. It is local-only by nature: it needs the real site, a real session and no CI runner can provide either.
 
 ## QA de campo (field QA)
 
-The automated harness (core + e2e) validates the published file against a frozen fixture — a replica of duolingo.com as captured on one date. The real site drifts, and those bugs are found on the real site. Field QA is the stage that closes that loop:
+The automated harness (core + e2e) validates the published file against a frozen fixture — a replica of duolingo.com as captured on one date. The real site drifts, and those bugs are found on the real site. The live probe (`npm run test:live`) is the bridge: it drives the real site with a real session and dumps the page errors, the script's DOM artifacts, the measured contrast and the effective motion level.
 
-1. **Guion per change.** Every change ends with `qa/guion-<change>.html` — a form (`qa/plantilla-guion.html` is the machinery) with one question per scenario of the change plus a fixed smoke section, to run against the real duolingo.com.
-2. **Evidence via the QA companion.** `qa/adhd-qa-helper.user.js` is a local, never-published userscript the tester installs alongside: it captures page-level runtime errors and copies a diagnostics block (errors, script DOM artifacts, motion) to paste as evidence. It uses no `GM_*` and makes no network requests.
-3. **Report as a gate.** The filled guion exports `qa/reports/<change>-campo.md` (Markdown + front matter: `change`, `version`, `fecha`, `resultado`, `fallas`). **No change is archived without its report** — `resultado: pass`, or an explicit `resultado: skip` with the reason.
-4. **Failures become tracked work.** A FALLA on the change's own questions reopens its tasks; a FALLA on the smoke section outside its scope becomes a new field-bug change citing the report.
+Field rounds are **issue-triggered**: when something is reported about the real site, a question form is generated from `qa/plantilla-guion.html` for that issue plus a fixed smoke section, the evidence is the probe's dump, and the filled form exports `qa/reports/<round>-campo.md` (front matter: `change`, `version`, `fecha`, `resultado`, `fallas`). A `FALLA` becomes tracked work: it reopens the change that owns the behaviour, or spawns a field-bug change that cites the report.
 
-The published userscript ships none of this — the guion and the companion live in `qa/`, tracked like `test/`, and the script file stays untouched.
+Feature work does not go through a round — the harness is the gate for it. The published userscript ships none of this machinery: the guion lives in `qa/`, tracked like `test/`, and the script file stays untouched.
 
 ## Roadmap
 

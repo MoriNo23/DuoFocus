@@ -136,6 +136,23 @@ if (!base) process.exit(1);
 let killed = 0, survived = 0, skipped = 0;
 const survList = [];
 
+// El harness ESCRIBE el archivo publicado (pone el mutante, corre los tests y
+// lo restaura). Si se interrumpe en medio, el archivo publicado queda como el
+// mutante: el repo se rompe en silencio. Por eso la restauracion va en un
+// finally, y el proceso sale por las patitas con el archivo intacto.
+function restorePublished() {
+  try {
+    if (fs.existsSync(SRC + '.bak')) {
+      fs.copyFileSync(SRC + '.bak', SRC);
+      fs.rmSync(SRC + '.bak', { force: true });
+      console.log('\n[mutation] archivo publicado restaurado.');
+    }
+  } catch (e) { /* nada que hacer: el .bak ya no esta */ }
+}
+process.on('SIGINT', () => { restorePublished(); process.exit(130); });
+process.on('SIGTERM', () => { restorePublished(); process.exit(143); });
+process.on('uncaughtException', (e) => { restorePublished(); console.error(e); process.exit(1); });
+
 for (const [i, mut] of MUTATORS.entries()) {
   const res = mut(ORIG);
   if (!res) {
@@ -144,12 +161,17 @@ for (const [i, mut] of MUTATORS.entries()) {
     continue;
   }
   fs.writeFileSync(TMP, res.code);
-  // swap: SRC ← mutado, correr, restaurar
+  // swap: SRC ← mutado, correr, restaurar (el finally garantiza que el archivo
+  // publicado vuelve a ser el original, aunque los tests o el proceso mueran)
   fs.copyFileSync(SRC, SRC + '.bak');
   fs.copyFileSync(TMP, SRC);
-  const pass = runTests();
-  fs.copyFileSync(SRC + '.bak', SRC);
-  fs.rmSync(SRC + '.bak', { force: true });
+  let pass;
+  try {
+    pass = runTests();
+  } finally {
+    fs.copyFileSync(SRC + '.bak', SRC);
+    fs.rmSync(SRC + '.bak', { force: true });
+  }
 
   if (pass) {
     survived++;
