@@ -17,10 +17,22 @@ PUBLICADO="${1:-$RAIZ/duolingo-adhd.user.js}"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-# Presupuesto de lineas divergentes. El valor actual es 59; el margen existe para
-# que un parche FUTURO y bien justificado no tenga que tocar este numero el mismo
-# dia, no para que quepan ediciones de la geometria del vendor.
-PRESUPUESTO=90
+# Presupuesto de lineas divergentes. El margen existe para que un parche FUTURO
+# y bien justificado no tenga que tocar este numero el mismo dia, no para que
+# quepan ediciones de la geometria del vendor.
+#
+# 149 = 44 (streak-flames) + 41 (crystal-reward) + 64 (duo-reward), y las 149
+# son de DOS parches locales ya archivados, cada uno documentado en el header
+# del .user.js ("CODIGO DE TERCEROS"):
+#   - calm-canvas-grayscale (2026-10-08): los tres efectos de canvas aceptan una
+#     paleta en grises cuando la calma esta activa (calmGreyFor). El camino
+#     animado original queda byte-identico: la paleta entra como parametro.
+#   - fix-reward-fx-static-and-duo-crash: el tick de los tres efectos cierra
+#     con try/finally (para que una excepcion no mate el loop) y clampa el
+#     timestamp del frame.
+# El numero se subio de 90 cuando se acumulo el segundo parche: el presupuesto
+# tiene que seguir denoting lo JUSTIFICADO, no lo que hay hoy.
+PRESUPUESTO=149
 
 # Los zips se abren desde un cwd neutral y con -j (sin paths internas): abrir un
 # zip con el cwd en la raiz del repo deja los archivos sueltos en el arbol de

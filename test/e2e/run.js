@@ -233,6 +233,10 @@ function checkReport(rep, results, { expectLesson, kind = 'none', navOnly = fals
     assert(results, 'un segmento queda activo', rep.activeSeg === 1, rep.activeSeg);
     assert(results, 'el riel aparece', rep.rail === true);
     assert(results, 'el cronometro aparece', rep.crono === true);
+    // integrated-timing-strip: el contador es la zona derecha de la tira, no
+    // una ficha flotante abajo a la izquierda (pisa el feedback de Duolingo).
+    assert(results, 'el cronometro vive DENTRO de la tira', rep.cronoInRail === true,
+      rep.cronoInRail);
     // animations-panel-setting
     // animations-panel-setting: el override 'always' gana contra el
     // prefers-reduced-motion del harness. El control del panel se prueba en

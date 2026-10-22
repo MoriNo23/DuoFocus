@@ -1,15 +1,15 @@
-# Duolingo ADHD — Progress bar milestones (for the easily distracted / bored)
+# DuoFocus — milestones, timer & rewards
 
 <div align="center">
 
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Tampermonkey](https://img.shields.io/badge/tampermonkey-userscript-green)](https://www.tampermonkey.net/)
-[![Version](https://img.shields.io/badge/version-2.24.0-orange)](https://greasyfork.org/es-419/scripts/590127)
+[![Version](https://img.shields.io/badge/version-2.27.0-orange)](https://greasyfork.org/es-419/scripts/590127)
 [![GreasyFork](https://img.shields.io/badge/Greasy%20Fork-Install%20Now-4ca64c)](https://greasyfork.org/es-419/scripts/590127-duolingo-adhd-progress-bar-milestones-for-the-easily-distracted-bored)
 
 </div>
 
-![Duolingo ADHD in action](demo.gif)
+![DuoFocus in action](demo.gif)
 
 ---
 
@@ -17,7 +17,7 @@
 
 Duolingo's progress bar is one long, uniform line. When you have trouble staying with something for long stretches, that line gives you almost nothing to hold onto: no landmarks, no sense of "I closed a chunk", no feedback on pace.
 
-**Duolingo ADHD** splits that bar into segments and turns each one into a small reward loop:
+**DuoFocus** splits that bar into segments and turns each one into a small reward loop:
 
 - The bar becomes a **sequence of segments** instead of one continuous sweep.
 - Each segment carries a **material tier** — Wood → Bronze → Silver → Streak → Diamond → **Super** — with its own texture, colour and signature animation.
@@ -149,7 +149,7 @@ To swap in a sound you generate yourself:
    echo -n "data:audio/mpeg;base64,$(base64 -w0 cue.mp3)"
    ```
 4. In `duolingo-adhd.user.js`, find `const SOUND_SAMPLES = {` and paste the entire string as the value for that cue's key (`super`, `diamante`, `racha`, `plata`, `bronce`, `madera`, `reminder`).
-5. Stay inside the budget: **≤ ~20 KB of base64 per cue, ≤ ~100 KB in total** (the seven shipped samples are ~70 KB together). If one doesn't fit, shorten it or set the value to `''` — the synthesizer takes over for that cue.
+5. Stay inside the budget: **≤ ~20 KB of base64 per cue, ≤ ~100 KB in total** (the seven shipped samples are ~61 KB together). If one doesn't fit, shorten it or set the value to `''` — the synthesizer takes over for that cue.
 
 Nothing else changes: the trigger, the panel and the tests only care about the cue id.
 
@@ -163,9 +163,9 @@ Nothing else changes: the trigger, the panel and the tests only care about the c
 | `plata` | unpleasant, flat | *Dull flat two-tone buzzer, slightly detuned and anticlimactic, unimpressed sound, 0.4 seconds, no voice, no music bed* |
 | `bronce` | unpleasant, dull | *Low dull thud with a short filtered noise scrape, heavy and disappointing, 0.3 seconds, no voice, no music bed* |
 | `madera` | unpleasant, ugly on purpose | *Descending wobbly low woodblock wobble, clumsy and comical failure sound, cheap and scratchy, 0.45 seconds, no voice, no music bed* |
-| `reminder` | a nudge, not an alarm | *Two soft dry woodblock knocks, gentle attention-getting tick-tock, calm and non urgent, 0.35 seconds, no voice, no music bed* |
+| `reminder` | a nudge, not an alarm | *Two soft hollow owl hoots, a calm distant bird call used as a gentle attention-getting nudge, warm and non urgent, 0.8 seconds, no voice, no music bed* |
 
-The shipped samples are trimmed to ≤ 1.9 s and normalised to **-16 LUFS / -2 dBTP**, so all seven sit at the same perceived volume. If you generate your own, match them by ear or with `ffmpeg -af ebur128`.
+The shipped samples are trimmed to ≤ 1.9 s and normalised to **≈ -18.5 LUFS (true peak between -2.6 and -10 dBTP)**, so all seven sit at the same perceived volume. If you generate your own, match them by ear or with `ffmpeg -af ebur128`.
 
 ## Verification
 

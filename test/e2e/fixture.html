@@ -243,6 +243,12 @@
       activeSeg: document.querySelectorAll('.adhd-seg.adhd-active').length,
       rail: !!q('.adhd-decay-timeline'),
       crono: !!q('.adhd-mini-crono'),
+      // integrated-timing-strip: el contador ya no flota abajo a la izquierda
+      // (pisa el feedback sheet de Duolingo): vive DENTRO de la tira.
+      cronoInRail: (function () {
+        var c = q('.adhd-mini-crono');
+        return !!(c && c.closest && c.closest('.adhd-decay-timeline'));
+      })(),
       railLabel: (q('.adhd-rail-label') || {}).textContent || null,
       // animations-panel-setting: resultado observable del nivel sembrado. El
       // control del panel se prueba en el core contra el fuente publicado; aca

@@ -27,6 +27,9 @@ docs/
 openspec/
 vault/
 
+# Product context (local, como docs/ y openspec/): lo escribe /impeccable init
+PRODUCT.md
+
 # Agent-local
 .hermes/
 .opencode/

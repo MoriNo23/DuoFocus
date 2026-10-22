@@ -2,7 +2,7 @@
   "name": "duolingo-adhd",
   "version": "2.12.0",
   "private": true,
-  "description": "Tests del userscript Duolingo ADHD. El sujeto de test es el archivo publicado (duolingo-adhd.user.js): no hay copia dev ni build.",
+  "description": "Tests del userscript DuoFocus. El sujeto de test es el archivo publicado (duolingo-adhd.user.js): no hay copia dev ni build.",
   "scripts": {
     "test": "npm run test:core",
     "test:core": "node --test test/core.test.js",

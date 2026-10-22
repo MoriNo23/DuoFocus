@@ -339,7 +339,8 @@ describe('i18n: detectLang / I18N / tr', () => {
   test('tr: devuelve el idioma pedido y hace fallback a es', () => {
     assert.equal(C.tr('es', 'btnReset'), 'Restablecer valores');
     assert.equal(C.tr('en', 'btnReset'), 'Reset values');
-    assert.equal(C.tr('en', 'panelTitle'), 'Progress bar segments (ADHD)');
+    assert.equal(C.tr('en', 'panelTitle'), 'Milestones & focus mode');
+    assert.equal(C.tr('es', 'panelTitle'), 'Hitos y modo foco');
     assert.equal(C.tr('fr', 'btnReset'), 'Restablecer valores'); // fallback a es
     assert.equal(C.tr('en', 'no-existe'), undefined); // clave inexistente → undefined
   });
@@ -792,6 +793,159 @@ describe('duolingo-native-panel-skin: el panel viste la estructura Feather', () 
       'el chip teñido oscuro tiene que desaparecer');
     assert.equal(regla('body.adhd-dark .adhd-readout').includes('color:#8fa3ad'), true,
       'el readout oscuro necesita color:#8fa3ad');
+  });
+});
+
+// ---------------------------------------------------------------------
+// duofocus-panel-native-controls: el panel deja de enseñar los controles
+// del navegador. La spec settings-panel-visuals decía "sliders/selects
+// remain native controls"; este change revierte esa parte y los viste con
+// la estructura Feather. Los controles SIGUEN siendo <input>/<select>
+// reales: id, teclado, valor y comportamiento no cambian — lo que cambia
+// es cómo se ven.
+// ---------------------------------------------------------------------
+describe('duofocus-panel-native-controls: los controles del panel visten Feather', () => {
+  const src = publishedSource();
+
+  function regla(selector) {
+    const m = src.match(new RegExp('^\\s*' + selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' \\{[^}]*\\}', 'm'));
+    return m ? m[0] : '';
+  }
+
+  test('el panel no se desborda: todo lo de adentro mide con border-box', () => {
+    const star = src.match(/^\s*\.adhd-panel \*, \.adhd-panel \*::before, \.adhd-panel \*::after \{[^}]*\}/m);
+    assert.ok(star, 'falta la regla de box-sizing para los hijos del panel');
+    assert.ok(star[0].includes('box-sizing:border-box'),
+      'los hijos del panel necesitan box-sizing:border-box (sin eso el boton se sale 24px)');
+    assert.ok(regla('.adhd-panel').includes('overflow-x:hidden'),
+      'el panel no debe abrir scrollbar horizontal');
+  });
+
+  test('el slider es el riel de Duolingo, no el del navegador', () => {
+    const r = regla('.adhd-panel input[type=range]');
+    assert.ok(r.includes('appearance:none'), 'el slider necesita appearance:none');
+    const track = src.match(/^\s*\.adhd-panel input\[type=range\]::\-webkit-slider-runnable-track \{[^}]*\}/m);
+    assert.ok(track, 'falta la pista del slider');
+    assert.ok(track[0].includes('height:8px'), 'la pista debe ser de 8px');
+    assert.ok(track[0].includes('--adhd-pct'), 'la pista se rellena con --adhd-pct');
+    const thumb = src.match(/^\s*\.adhd-panel input\[type=range\]::\-webkit-slider-thumb \{[^}]*\}/m);
+    assert.ok(thumb, 'falta el knob del slider');
+    assert.ok(thumb[0].includes('border-radius:50%'), 'el knob es circular');
+  });
+
+  test('el select es una card con chevron dibujado', () => {
+    const r = regla('.adhd-panel select');
+    assert.ok(r.includes('appearance:none'), 'el select necesita appearance:none');
+    assert.ok(r.includes('border:2px solid #e5e5e5'), 'el select necesita el borde 2px de Feather');
+    assert.ok(r.includes('border-radius:12px'), 'el select necesita radio 12px');
+    assert.ok(r.includes('background-image:url('), 'el select necesita el chevron dibujado');
+    assert.equal(/background:#/.test(r), false,
+      'el select no puede usar el shorthand background: mata el chevron y el color');
+  });
+
+  test('el checkbox es la caja verde de Duolingo', () => {
+    const r = regla('.adhd-panel input[type=checkbox]');
+    assert.ok(r.includes('appearance:none'), 'el checkbox necesita appearance:none');
+    assert.ok(r.includes('border-radius:7px'), 'la caja necesita radio 7px');
+    const checked = src.match(/^\s*\.adhd-panel input\[type=checkbox\]:checked \{[^}]*\}/m);
+    assert.ok(checked, 'falta el estado checked');
+    assert.ok(checked[0].includes('#58cc02'), 'la caja marcada usa el verde de Duolingo (#58cc02)');
+    const check = src.match(/^\s*\.adhd-panel input\[type=checkbox\]:checked::after \{[^}]*\}/m);
+    assert.ok(check, 'falta el check dibujado');
+    assert.ok(check[0].includes('#fff'), 'la palomita es blanca');
+  });
+
+  test('el relleno del riel se pinta con --adhd-pct', () => {
+    assert.ok(/function paintRange\(el\)/.test(src), 'falta paintRange');
+    assert.ok(src.includes("setProperty('--adhd-pct'"), 'paintRange tiene que setear --adhd-pct');
+    assert.ok(/paintRanges\(panel\)/.test(src), 'el panel se pinta al construirse');
+    assert.ok(/type === 'range'/.test(src), 'el listener delegado repinta los sliders');
+  });
+
+  test('los 6 toggles del panel usan la fila con caja', () => {
+    const n = (src.match(/<label class="adhd-check"><input type="checkbox"/g) || []).length;
+    assert.equal(n, 6, 'los 6 checkboxes del panel deben usar la fila adhd-check');
+  });
+
+  test('el modo oscuro espeja la piel de los controles', () => {
+    assert.ok(src.includes('body.adhd-dark .adhd-panel input[type=range]::-webkit-slider-runnable-track'),
+      'falta el riel oscuro');
+    assert.ok(src.includes('body.adhd-dark .adhd-panel select'), 'falta el select oscuro');
+    assert.ok(src.includes('body.adhd-dark .adhd-panel input[type=checkbox]'), 'falta el checkbox oscuro');
+    assert.ok(/body\.adhd-dark \.adhd-panel input\[type=range\] \{ background:transparent;/.test(src),
+      'el slider oscuro debe ser transparente: el riel lo pinta el pseudo-elemento');
+  });
+});
+
+// ---------------------------------------------------------------------
+// duofocus-rename: el script se llama DuoFocus. El nombre viejo ("Duolingo
+// ADHD — Progress bar milestones (for the easily distracted / bored)") era
+// largo y difícil de leer en la lista del gestor de userscripts.
+// ---------------------------------------------------------------------
+describe('duofocus-rename: el script se llama DuoFocus', () => {
+  // El bloque de metadata no viaja en publishedSource(): el nombre vive ahí.
+  const raw = fs.readFileSync(publishedPath(), 'utf8');
+
+  test('el nombre en ingles y en espanol son los nuevos', () => {
+    assert.ok(raw.includes('// @name           DuoFocus — milestones, timer & rewards'), 'falta el @name nuevo');
+    assert.ok(raw.includes('// @name:es        DuoFocus — hitos, cronómetro y recompensas'), 'falta el @name:es nuevo');
+  });
+
+  test('no queda rastro del nombre viejo', () => {
+    assert.equal(raw.includes('Duolingo ADHD'), false, 'el nombre viejo sigue en el archivo');
+    const src = publishedSource();
+    assert.equal(src.includes('DUOLINGO ADHD'), false, 'el eyebrow viejo sigue en el panel');
+  });
+
+  test('la notificacion usa el nombre nuevo', () => {
+    assert.equal(C.I18N.es.notifTitle, 'DuoFocus — recordatorio');
+    assert.equal(C.I18N.en.notifTitle, 'DuoFocus — reminder');
+  });
+});
+
+// ---------------------------------------------------------------------
+// a11y-panel-contrast: el texto del panel tiene que pasar WCAG AA de
+// verdad. Los numeros del DESIGN.md estaban mal medidos (#0a7ec2 daba
+// 4.40:1, no 5.6:1), asi que el titulo, el valor y las secciones — y el
+// .adhd-val en oscuro — incumplian. Los valores de abajo estan medidos
+// contra su fondo real: 4.74:1, 5.61:1 y 4.54:1 sobre #ffffff, 9.26:1
+// sobre #1e2a31.
+// ---------------------------------------------------------------------
+describe('a11y-panel-contrast: el texto del panel pasa WCAG AA', () => {
+  const src = publishedSource();
+
+  function regla(selector) {
+    const m = src.match(new RegExp('^\\s*' + selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' \\{[^}]*\\}', 'm'));
+    return m ? m[0] : '';
+  }
+
+  test('el azul de acento del panel es un paso que pasa AA', () => {
+    assert.ok(regla('.adhd-panel h4').includes('color:#0a78bd'),
+      'el titulo necesita #0a78bd (4.74:1); #0a7ec2 = 4.40:1 no pasa');
+    assert.ok(regla('.adhd-panel .adhd-val').includes('color:#0a78bd'),
+      'el valor necesita #0a78bd');
+    assert.ok(regla('.adhd-panel summary').includes('color:#0a78bd'),
+      'los titulos de seccion necesitan #0a78bd');
+  });
+
+  test('el eyebrow no usa el azul brillante ni texto de 10px', () => {
+    const eb = regla('.adhd-eyebrow');
+    assert.equal(eb.includes('#1cb0f6'), false,
+      '#1cb0f6 sobre blanco da 2.44:1: no puede ir en texto');
+    assert.ok(eb.includes('color:#0a6cab'), 'el eyebrow necesita #0a6cab (5.61:1)');
+    assert.equal(/font-size:10px/.test(eb), false, 'el texto funcional no baja de 11px');
+  });
+
+  test('los textos secundarios no quedan en 4.48:1', () => {
+    assert.ok(regla('.adhd-panel .adhd-hint').includes('color:#767676'),
+      'los hints necesitan #767676 (4.54:1); #777 = 4.48:1 no pasa');
+    assert.ok(regla('.adhd-panel .adhd-readout').includes('color:#767676'),
+      'los readouts necesitan #767676');
+  });
+
+  test('el valor tambien tiene equivalente oscuro', () => {
+    assert.ok(src.includes('body.adhd-dark .adhd-panel .adhd-val { color:#84d8ff; }'),
+      'en oscuro el valor necesita #84d8ff (9.26:1); el azul claro daba 3.34:1');
   });
 });
 
@@ -2323,5 +2477,83 @@ describe('calm-canvas-grayscale: rampa de grises por peldaño con efecto', () =>
     assert.equal(C.shadeGrey('#808080', 0), '#000000', 'factor 0 es negro');
     assert.equal(C.shadeGrey('basura', 1), null, 'basura no lanza: null');
     assert.equal(C.shadeGrey('#808080', NaN), null, 'factor NaN no lanza: null');
+  });
+});
+
+// ---------------------------------------------------------------------
+// integrated-timing-strip: el riel y el cronómetro son UNA sola tira.
+// La etiqueta del peldaño, el riel de presupuesto y el contador viven
+// en el mismo objeto anclado a la barra. El contador deja de flotar
+// (abajo a la izquierda, donde pisaba el feedback sheet de Duolingo) y
+// pasa a ser el remate derecho de la tira.
+// ---------------------------------------------------------------------
+describe('integrated-timing-strip: la tira lleva las tres zonas', () => {
+  const src = publishedSource();
+
+  // Region del codigo entre dos marcadores: si un marcador se mueve, el
+  // test falla ruidoso en vez de medir sobre la region equivocada.
+  function region(desde, hasta) {
+    const a = src.indexOf(desde);
+    assert.notEqual(a, -1, 'no se encontro el marcador: ' + desde);
+    const b = src.indexOf(hasta, a);
+    assert.notEqual(b, -1, 'no se encontro el marcador: ' + hasta);
+    return src.slice(a, b);
+  }
+
+  function regla(selector) {
+    const m = src.match(new RegExp('^\\s*' + selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' \\{[^}]*\\}', 'm'));
+    return m ? m[0] : '';
+  }
+
+  test('el contador se crea DENTRO de la tira y deja de flotar en el body', () => {
+    assert.equal(/document\.body\.appendChild\(miniCronoEl\)/.test(src), false,
+      'el contador sigue anexado a document.body: vuelve a pisar el feedback de Duolingo');
+    const start = region('function startMiniCrono()', 'function stopMiniCrono()');
+    assert.ok(/decayEl\.appendChild\(miniCronoEl\)/.test(start),
+      'el contador tiene que entrar en la tarjeta de la tira');
+  });
+
+  test('la tira es un flex row con etiqueta, riel y contador en ese orden', () => {
+    const card = regla('.adhd-decay-timeline');
+    assert.ok(card, 'falta la regla de la tarjeta de la tira');
+    assert.ok(/display:flex/.test(card), 'la tarjeta tiene que ser un flex row (tres zonas en fila)');
+    assert.ok(/align-items:center/.test(card), 'las tres zonas se alinean al centro vertical');
+    const track = regla('.adhd-rail-track');
+    assert.ok(/flex:1/.test(track), 'el riel tiene que crecer: flex:1 (ya no es inset:0)');
+
+    const build = region('function buildDecayTimeline()', 'function ensureDecayTimeline()');
+    const iLabel = build.indexOf('decayEl.appendChild(label)');
+    const iTrack = build.indexOf('decayEl.appendChild(track)');
+    assert.ok(iLabel > -1, 'la etiqueta tiene que ser hija de la tarjeta, no del riel');
+    assert.ok(iTrack > iLabel, 'el orden de las zonas es etiqueta -> riel');
+    assert.equal(/track\.appendChild\(label\)/.test(build), false,
+      'la etiqueta sigue dentro del riel: flotaria sobre el relleno de color');
+  });
+
+  test('la etiqueta va en tinta oscura y sin marcadores de lado', () => {
+    const label = regla('.adhd-rail-label');
+    assert.ok(label, 'falta la regla de la etiqueta');
+    assert.ok(/color:#3c3c3c/.test(label), 'la etiqueta tiene que ir en tinta oscura sobre la tarjeta');
+    assert.equal(/color:#fff/.test(label), false, 'la etiqueta sigue blanca: solo se leia sobre el relleno');
+    assert.equal(/text-shadow/.test(label), false, 'la etiqueta sigue con sombra de texto (era para el color de fondo)');
+    assert.equal(/side-left|side-right/.test(src), false,
+      'quedaron marcadores de lado: la etiqueta ya no flota sobre el riel');
+    const dark = src.match(/body\.adhd-dark \.adhd-rail-label \{[^}]*\}/);
+    assert.ok(dark, 'falta la tinta de la etiqueta en modo oscuro');
+    assert.ok(/color:#c9d1d9/.test(dark[0]), 'en oscuro la etiqueta necesita tinta clara');
+  });
+
+  test('el contador baja a 16px para entrar en la tira de 28px', () => {
+    const bloques = src.match(/^\s*\.adhd-mini-crono \{[^}]*\}/gm) || [];
+    assert.ok(bloques.length >= 1, 'falta el CSS del contador');
+    const tamanos = [];
+    for (const b of bloques) {
+      assert.equal(/font:/.test(b), false,
+        'el contador no puede traer un atajo font:: esconderia otro tamano de letra');
+      const m = b.match(/font-size:\s*(\d+)px/);
+      if (m) tamanos.push(Number(m[1]));
+    }
+    assert.ok(tamanos.length > 0, 'el contador no declara su tamano');
+    assert.ok(tamanos.every((t) => t === 16), 'el contador tiene que medir 16px, no ' + tamanos.join('/'));
   });
 });
